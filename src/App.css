@@ -1,0 +1,23 @@
+/* AegisID Application Custom Utility Styles */
+
+.glow-text {
+  text-shadow: 0 0 6px rgba(120, 180, 255, 0.95), 0 0 14px rgba(120, 180, 255, 0.6);
+  transition: text-shadow 0.3s ease, transform 0.3s ease;
+}
+.glow-text:hover {
+  text-shadow: 0 0 10px rgba(140, 200, 255, 1), 0 0 22px rgba(140, 200, 255, 0.95);
+  transform: translateY(-1px);
+}
+
+/* Premium subtle floating status pill in verification pipeline */
+.pill-floating {
+  animation: floatY 4s ease-in-out infinite;
+}
+@keyframes floatY {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+  100% { transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pill-floating { animation: none; }
+}
