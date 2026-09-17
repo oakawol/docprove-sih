@@ -7,6 +7,7 @@ import { DocproveFooter } from './components/layout/DocproveFooter';
 import { VerifyPage } from './components/verify/VerifyPage';
 import { MakersPage } from './components/makers/MakersPage';
 import { CinematicBackground } from './components/background/CinematicBackground';
+import { CinematicOpeningIntro } from './components/intro/CinematicOpeningIntro';
 
 const AppContent: React.FC = () => {
   const [activePage, setActivePage] = useState<ActivePage>('verify');
@@ -58,7 +59,10 @@ const AppContent: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#07090e] text-[#f5f5f7] selection:bg-white/20 selection:text-white relative overflow-x-hidden font-sans">
+    <div className="min-h-screen flex flex-col bg-[var(--bg-dark)] text-[var(--text-primary)] transition-colors duration-500 selection:bg-white/20 selection:text-white relative overflow-x-hidden font-sans">
+      {/* Cinematic Logo Intro Overlay */}
+      <CinematicOpeningIntro />
+
       {/* Cinematic Document Security & Optical Geometry Background */}
       <CinematicBackground />
 
@@ -95,8 +99,8 @@ const AppContent: React.FC = () => {
         </AnimatePresence>
       </main>
 
-      {/* Minimal Footer */}
-      <DocproveFooter onSelectPage={handleSelectPage} />
+      {/* Minimal Footer for non-verify pages */}
+      {activePage !== 'verify' && <DocproveFooter onSelectPage={handleSelectPage} />}
     </div>
   );
 };

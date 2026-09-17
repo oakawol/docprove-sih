@@ -1,0 +1,141 @@
+{
+  "doc_type": "visa",
+  "label": "tampered",
+  "source": "visas\\genuine\\visa_008.png",
+  "tamper": {
+    "tamper_type": "dob",
+    "field": "dob",
+    "original_value": "04/01/1996",
+    "new_value": "03/01/1996",
+    "mrz_consistent": null
+  },
+  "tamper_bbox": [
+    238,
+    228,
+    346,
+    251
+  ],
+  "fields": {
+    "doc_id": "008",
+    "surname": "BHATIA",
+    "given_name": "DIVYA",
+    "name": "DIVYA BHATIA",
+    "sex": "F",
+    "dob": "03/01/1996",
+    "place_of_birth": "NAGPUR",
+    "nationality": "TESTLANDIAN",
+    "country_code": "TST",
+    "passport_no": "TESTA2776",
+    "file_no": "TF8290770",
+    "issue": "19/03/2020",
+    "expiry": "17/03/2030",
+    "place_of_issue": "PORT TESTA",
+    "photo_seed": 763935,
+    "signature_name": "DIVYA BHATIA",
+    "mrz": [
+      "P<TSTBHATIA<<DIVYA<<<<<<<<<<<<<<<<<<<<<<<<<<",
+      "TESTA27764TST9601042F3003172TF8290770<<<<<72"
+    ],
+    "visa_no": "TSTV503906",
+    "visa_type": "EMPLOYMENT (E-4)",
+    "entries": "SINGLE",
+    "duration": "60 DAYS",
+    "valid_from": "20/07/2025",
+    "valid_until": "18/10/2025",
+    "port": "TEST INTL AIRPORT",
+    "issued_at": "TESTGARH",
+    "stamp_date": "20 JUL 2025"
+  },
+  "boxes": {
+    "photo": [
+      37,
+      97,
+      203,
+      303
+    ],
+    "visa_no": [
+      236,
+      114,
+      360,
+      137
+    ],
+    "passport_no": [
+      636,
+      114,
+      752,
+      137
+    ],
+    "name": [
+      236,
+      170,
+      385,
+      193
+    ],
+    "nationality": [
+      636,
+      170,
+      782,
+      193
+    ],
+    "dob": [
+      238,
+      228,
+      346,
+      251
+    ],
+    "sex": [
+      636,
+      226,
+      656,
+      249
+    ],
+    "visa_type": [
+      236,
+      282,
+      435,
+      309
+    ],
+    "entries": [
+      636,
+      282,
+      718,
+      305
+    ],
+    "valid_from": [
+      236,
+      338,
+      344,
+      361
+    ],
+    "valid_until": [
+      636,
+      338,
+      744,
+      361
+    ],
+    "duration": [
+      236,
+      394,
+      326,
+      417
+    ],
+    "issued_at": [
+      636,
+      394,
+      752,
+      417
+    ],
+    "port": [
+      236,
+      450,
+      439,
+      473
+    ],
+    "stamp": [
+      690,
+      360,
+      930,
+      600
+    ]
+  }
+}

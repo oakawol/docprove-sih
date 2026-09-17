@@ -1,0 +1,142 @@
+{
+  "doc_type": "visa",
+  "label": "tampered",
+  "source": "visas\\genuine\\visa_010.png",
+  "tamper": {
+    "tamper_type": "stamp",
+    "field": "stamp",
+    "original_value": "03 SEP 2025",
+    "new_value": "03 SEP 2026",
+    "mrz_consistent": null
+  },
+  "tamper_bbox": [
+    690,
+    360,
+    930,
+    600
+  ],
+  "fields": {
+    "doc_id": "010",
+    "surname": "SAXENA",
+    "given_name": "SANJANA",
+    "name": "SANJANA SAXENA",
+    "sex": "F",
+    "dob": "16/09/1992",
+    "place_of_birth": "KOCHI",
+    "nationality": "TESTLANDIAN",
+    "country_code": "TST",
+    "passport_no": "TESTB5681",
+    "file_no": "TF4934149",
+    "issue": "09/04/2023",
+    "expiry": "06/04/2033",
+    "place_of_issue": "PORT TESTA",
+    "photo_seed": 352162,
+    "signature_name": "SANJANA SAXENA",
+    "mrz": [
+      "P<TSTSAXENA<<SANJANA<<<<<<<<<<<<<<<<<<<<<<<<",
+      "TESTB56811TST9209161F3304064TF4934149<<<<<62"
+    ],
+    "visa_no": "TSTV258157",
+    "visa_type": "BUSINESS (B-2)",
+    "entries": "MULTIPLE",
+    "duration": "45 DAYS",
+    "valid_from": "03/09/2025",
+    "valid_until": "02/03/2026",
+    "port": "TESTGARH LAND BORDER",
+    "issued_at": "NEW TESTON",
+    "stamp_date": "03 SEP 2025",
+    "stamp_date_tampered": "03 SEP 2026"
+  },
+  "boxes": {
+    "photo": [
+      37,
+      97,
+      203,
+      303
+    ],
+    "visa_no": [
+      236,
+      114,
+      360,
+      137
+    ],
+    "passport_no": [
+      636,
+      114,
+      752,
+      137
+    ],
+    "name": [
+      236,
+      170,
+      426,
+      193
+    ],
+    "nationality": [
+      636,
+      170,
+      782,
+      193
+    ],
+    "dob": [
+      236,
+      226,
+      344,
+      249
+    ],
+    "sex": [
+      636,
+      226,
+      656,
+      249
+    ],
+    "visa_type": [
+      236,
+      282,
+      396,
+      309
+    ],
+    "entries": [
+      636,
+      282,
+      743,
+      305
+    ],
+    "valid_from": [
+      236,
+      338,
+      344,
+      361
+    ],
+    "valid_until": [
+      636,
+      338,
+      744,
+      361
+    ],
+    "duration": [
+      236,
+      394,
+      326,
+      417
+    ],
+    "issued_at": [
+      636,
+      394,
+      776,
+      417
+    ],
+    "port": [
+      236,
+      450,
+      504,
+      473
+    ],
+    "stamp": [
+      690,
+      360,
+      930,
+      600
+    ]
+  }
+}

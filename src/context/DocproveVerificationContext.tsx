@@ -1,4 +1,8 @@
 import React, { createContext, useContext, useState, useRef, useCallback } from 'react';
+import type { ScanResult } from '../types/scan';
+import { scanDocument, validateFile } from '../services/api';
+
+// ── State Machine ───────────────────────────────────────────────────────────
 
 export type VerificationState =
   | 'idle'
@@ -20,61 +24,33 @@ export interface PipelineStages {
   face: StageProgress;
 }
 
-export interface ExtractedDocumentData {
-  documentType: string;
-  fullName: string;
-  documentNumber: string;
-  nationality: string;
-  dateOfBirth: string;
-  dateOfExpiry: string;
-  mrz: string;
-  confidence: number;
-  layers: {
-    ocr: { status: string; label: string };
-    validation: { status: string; label: string };
-    tampering: { status: string; label: string };
-    face: { status: string; label: string };
-  };
-}
-
 export interface SelectedFileMeta {
   name: string;
   sizeFormatted: string;
   type: string;
   previewUrl?: string;
-  isDemo?: boolean;
 }
+
+// ── Context Interface ───────────────────────────────────────────────────────
 
 interface VerificationContextType {
   state: VerificationState;
   pipelineStages: PipelineStages;
   statusMessage: string;
   selectedFile: SelectedFileMeta | null;
-  documentData: ExtractedDocumentData;
+  uploadedFile: File | null;
+  scanResult: ScanResult | null;
+  error: string | null;
+  activeStageIndex: number;
+  currentStageName: string;
   handleFileSelect: (file: File) => void;
-  loadSampleDocument: (type?: 'passport' | 'visa') => void;
   clearFile: () => void;
   startVerification: () => Promise<void>;
   resetVerification: () => void;
   cancelVerification: () => void;
 }
 
-const DEFAULT_DEMO_DATA: ExtractedDocumentData = {
-  documentType: 'PASSPORT',
-  fullName: 'ALEX MORGAN',
-  documentNumber: 'PX0000000',
-  nationality: 'EXAMPLE',
-  dateOfBirth: 'XX / XX / XXXX',
-  dateOfExpiry: 'XX / XX / XXXX',
-  mrz: 'P<EXPMORGAN<<ALEX<<<<<<<<<<<<<<<<<<<<<<<\nPX00000005EXP9405201M3405202<<<<<<<<<<<<<<08',
-  confidence: 98.4,
-  layers: {
-    ocr: { status: 'VERIFIED', label: 'OCR EXTRACTION' },
-    validation: { status: 'VERIFIED', label: 'DOCUMENT VALIDATION' },
-    tampering: { status: 'NO SUSPICIOUS ALTERATION INDICATORS', label: 'TAMPERING DETECTION' },
-    face: { status: 'MATCH DETECTED', label: 'FACE DETECTION' },
-  },
-};
+// ── Defaults ────────────────────────────────────────────────────────────────
 
 const INITIAL_PIPELINE: PipelineStages = {
   ocr: 'waiting',
@@ -85,12 +61,20 @@ const INITIAL_PIPELINE: PipelineStages = {
 
 const DocproveVerificationContext = createContext<VerificationContextType | undefined>(undefined);
 
+// ── Provider ────────────────────────────────────────────────────────────────
+
 export const DocproveVerificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, setState] = useState<VerificationState>('idle');
   const [pipelineStages, setPipelineStages] = useState<PipelineStages>(INITIAL_PIPELINE);
   const [statusMessage, setStatusMessage] = useState<string>('WAITING FOR DOCUMENT');
   const [selectedFile, setSelectedFile] = useState<SelectedFileMeta | null>(null);
-  const [documentData] = useState<ExtractedDocumentData>(DEFAULT_DEMO_DATA);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [scanResult, setScanResult] = useState<ScanResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [activeStageIndex, setActiveStageIndex] = useState(-1);
+
+  const STAGE_NAMES = ['DOCUMENT CHECK', 'TEXT READING', 'DETAIL CHECK', 'TAMPERING CHECK', 'FACE MATCH', 'VERIFIED RESULT'];
+  const currentStageName = activeStageIndex >= 0 && activeStageIndex < STAGE_NAMES.length ? STAGE_NAMES[activeStageIndex] : '';
 
   const abortControllerRef = useRef<boolean>(false);
 
@@ -100,54 +84,66 @@ export const DocproveVerificationProvider: React.FC<{ children: React.ReactNode 
     return `${(bytes / 1048576).toFixed(2)} MB`;
   };
 
+  // ── File Selection ──────────────────────────────────────────────────────
+
   const handleFileSelect = (file: File) => {
-    const previewUrl = URL.createObjectURL(file);
+    // Client-side validation
+    const validationError = validateFile(file);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    const previewUrl = file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined;
     setSelectedFile({
       name: file.name,
       sizeFormatted: formatFileSize(file.size),
       type: file.type || 'application/octet-stream',
       previewUrl,
-      isDemo: false,
     });
+    setUploadedFile(file);
     setState('idle');
     setPipelineStages(INITIAL_PIPELINE);
-    setStatusMessage('DOCUMENT READY FOR ANALYSIS');
-  };
-
-  const loadSampleDocument = (type: 'passport' | 'visa' = 'passport') => {
-    setSelectedFile({
-      name: type === 'passport' ? 'sample_specimen_passport.png' : 'sample_specimen_visa.png',
-      sizeFormatted: '1.84 MB',
-      type: 'image/png',
-      isDemo: true,
-    });
-    setState('idle');
-    setPipelineStages(INITIAL_PIPELINE);
-    setStatusMessage('DEMO SPECIMEN LOADED');
+    setScanResult(null);
+    setError(null);
+    setStatusMessage('DOCUMENT READY FOR VERIFICATION');
   };
 
   const clearFile = () => {
+    if (selectedFile?.previewUrl) {
+      URL.revokeObjectURL(selectedFile.previewUrl);
+    }
     setSelectedFile(null);
+    setUploadedFile(null);
     setState('idle');
+    setActiveStageIndex(-1);
     setPipelineStages(INITIAL_PIPELINE);
+    setScanResult(null);
+    setError(null);
     setStatusMessage('WAITING FOR DOCUMENT');
   };
 
   const cancelVerification = () => {
     abortControllerRef.current = true;
     setState('idle');
+    setActiveStageIndex(-1);
     setPipelineStages(INITIAL_PIPELINE);
     setStatusMessage('VERIFICATION CANCELLED');
   };
 
   const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+  // ── Start Verification (Real Backend Call) ──────────────────────────────
+
   const startVerification = useCallback(async () => {
-    if (!selectedFile) return;
+    if (!uploadedFile) return;
 
     abortControllerRef.current = false;
+    setError(null);
+    setScanResult(null);
     setState('scanning');
-    setStatusMessage('READING DOCUMENT');
+    setActiveStageIndex(0);
+    setStatusMessage('Inspecting document structure');
     setPipelineStages({
       ocr: 'processing',
       validation: 'waiting',
@@ -155,68 +151,118 @@ export const DocproveVerificationProvider: React.FC<{ children: React.ReactNode 
       face: 'waiting',
     });
 
-    // Stage 1: Reading & Text Extraction
-    await sleep(750);
+    // Fire the real API request immediately (runs in background)
+    const apiPromise = scanDocument(uploadedFile);
+
+    // ── Animated stage progression (runs in parallel with the API call) ──
+
+    // Stage 0 → 1: Document Check → Text Reading
+    await sleep(800);
     if (abortControllerRef.current) return;
-    setStatusMessage('EXTRACTING TEXT');
-    await sleep(850);
+    setActiveStageIndex(1);
+    setStatusMessage('Extracting document text');
+
+    await sleep(900);
     if (abortControllerRef.current) return;
 
-    // Stage 2: Document Structure Validation
+    // Stage 1 → 2: Text Reading → Detail Check
     setState('ocrComplete');
+    setActiveStageIndex(2);
     setPipelineStages({
       ocr: 'completed',
       validation: 'processing',
       tampering: 'waiting',
       face: 'waiting',
     });
-    setStatusMessage('CHECKING DOCUMENT STRUCTURE');
-    await sleep(950);
+    setStatusMessage('Cross-checking document details');
+
+    await sleep(1000);
     if (abortControllerRef.current) return;
 
-    // Stage 3: Visual Tampering & Forensic Check
+    // Stage 2 → 3: Detail Check → Tampering Check
     setState('validationComplete');
+    setActiveStageIndex(3);
     setPipelineStages({
       ocr: 'completed',
       validation: 'completed',
       tampering: 'processing',
       face: 'waiting',
     });
-    setStatusMessage('ANALYZING VISUAL INTEGRITY');
-    await sleep(1000);
+    setStatusMessage('Analyzing document integrity');
+
+    await sleep(1100);
     if (abortControllerRef.current) return;
 
-    // Stage 4: Face Biometric Detection
+    // Stage 3 → 4: Tampering Check → Face Match
     setState('tamperingComplete');
+    setActiveStageIndex(4);
     setPipelineStages({
       ocr: 'completed',
       validation: 'completed',
       tampering: 'completed',
       face: 'processing',
     });
-    setStatusMessage('DETECTING FACE');
-    await sleep(900);
+    setStatusMessage('Checking portrait integrity');
+
+    await sleep(800);
     if (abortControllerRef.current) return;
 
-    // Stage 5: Finalizing Verification
+    // Stage 4 → 5: Face Match → Verified Result
     setState('faceComplete');
+    setActiveStageIndex(5);
     setPipelineStages({
       ocr: 'completed',
       validation: 'completed',
       tampering: 'completed',
       face: 'completed',
     });
-    setStatusMessage('FINALIZING VERIFICATION');
-    await sleep(650);
-    if (abortControllerRef.current) return;
+    setStatusMessage('Compiling verification results');
 
-    // Climax Result
-    setState('verified');
-    setStatusMessage('VERIFICATION COMPLETE');
-  }, [selectedFile]);
+    // ── Wait for the actual API response ──────────────────────────────────
+    try {
+      const result = await apiPromise;
+      if (abortControllerRef.current) return;
+
+      setScanResult(result);
+      setState('verified');
+      setActiveStageIndex(-1);
+
+      // Set final status message based on real result
+      const riskStatus = result.risk?.status || result.final_status;
+      if (riskStatus === 'CLEAR') {
+        setStatusMessage('AUTOMATED SCREENING COMPLETE — CLEAR');
+      } else if (riskStatus === 'SUSPICIOUS') {
+        setStatusMessage('AUTOMATED SCREENING COMPLETE — REVIEW RECOMMENDED');
+      } else if (riskStatus === 'HIGH RISK') {
+        setStatusMessage('AUTOMATED SCREENING COMPLETE — HIGH RISK');
+      } else {
+        setStatusMessage('AUTOMATED SCREENING COMPLETE');
+      }
+    } catch (err: unknown) {
+      if (abortControllerRef.current) return;
+
+      const message = err instanceof Error ? err.message : 'Verification failed. Please try again.';
+      console.error('[DocProve] Verification failed:', err);
+      setError(message);
+      setState('failed');
+      setActiveStageIndex(-1);
+      setPipelineStages(INITIAL_PIPELINE);
+      setStatusMessage('VERIFICATION FAILED');
+    }
+  }, [uploadedFile]);
+
+  // ── Reset ───────────────────────────────────────────────────────────────
 
   const resetVerification = () => {
+    if (selectedFile?.previewUrl) {
+      URL.revokeObjectURL(selectedFile.previewUrl);
+    }
+    setSelectedFile(null);
+    setUploadedFile(null);
+    setScanResult(null);
+    setError(null);
     setState('idle');
+    setActiveStageIndex(-1);
     setPipelineStages(INITIAL_PIPELINE);
     setStatusMessage('WAITING FOR DOCUMENT');
   };
@@ -228,9 +274,12 @@ export const DocproveVerificationProvider: React.FC<{ children: React.ReactNode 
         pipelineStages,
         statusMessage,
         selectedFile,
-        documentData,
+        uploadedFile,
+        scanResult,
+        error,
+        activeStageIndex,
+        currentStageName,
         handleFileSelect,
-        loadSampleDocument,
         clearFile,
         startVerification,
         resetVerification,

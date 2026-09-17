@@ -1,0 +1,125 @@
+{
+  "doc_type": "passport",
+  "label": "genuine",
+  "source": null,
+  "fields": {
+    "doc_id": "005",
+    "surname": "SHARMA",
+    "given_name": "ABHINAV",
+    "name": "ABHINAV SHARMA",
+    "sex": "M",
+    "dob": "06/04/1980",
+    "place_of_birth": "PUNE",
+    "nationality": "TESTLANDIAN",
+    "country_code": "TST",
+    "passport_no": "TESTG1960",
+    "file_no": "TF3762152",
+    "issue": "16/08/2021",
+    "expiry": "14/08/2031",
+    "place_of_issue": "TESTGARH",
+    "photo_seed": 2261,
+    "signature_name": "ABHINAV SHARMA",
+    "mrz": [
+      "P<TSTSHARMA<<ABHINAV<<<<<<<<<<<<<<<<<<<<<<<<",
+      "TESTG19606TST8004060M3108147TF3762152<<<<<48"
+    ]
+  },
+  "boxes": {
+    "photo": [
+      37,
+      97,
+      233,
+      343
+    ],
+    "type_code": [
+      266,
+      118,
+      348,
+      142
+    ],
+    "passport_no": [
+      656,
+      118,
+      785,
+      142
+    ],
+    "surname": [
+      266,
+      178,
+      371,
+      202
+    ],
+    "given_name": [
+      266,
+      238,
+      375,
+      262
+    ],
+    "nationality": [
+      656,
+      178,
+      819,
+      202
+    ],
+    "sex": [
+      656,
+      238,
+      682,
+      262
+    ],
+    "dob": [
+      266,
+      298,
+      382,
+      322
+    ],
+    "place_of_birth": [
+      656,
+      298,
+      726,
+      322
+    ],
+    "issue": [
+      266,
+      358,
+      382,
+      382
+    ],
+    "expiry": [
+      656,
+      358,
+      772,
+      382
+    ],
+    "place_of_issue": [
+      266,
+      418,
+      395,
+      442
+    ],
+    "file_no": [
+      656,
+      418,
+      774,
+      442
+    ],
+    "signature": [
+      270,
+      470,
+      590,
+      516
+    ],
+    "barcode": [
+      660,
+      468,
+      940,
+      514
+    ],
+    "mrz": [
+      30,
+      568,
+      976,
+      650
+    ]
+  }
+}

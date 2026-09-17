@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import fakePassportImg from '../../images/fakepassport.png';
+import type { ScanResult } from '../../types/scan';
 
 export type DocumentInspectionMode =
   | 'idle'
@@ -15,13 +16,28 @@ export interface MasterPassportDocumentProps {
   mode?: DocumentInspectionMode;
   className?: string;
   tiltEffect?: boolean;
+  scanResult?: ScanResult | null;
 }
 
 export const MasterPassportDocument: React.FC<MasterPassportDocumentProps> = ({
   mode = 'idle',
   className = '',
   tiltEffect = true,
+  scanResult = null,
 }) => {
+  // Real data from backend, with fallback to demo values
+  const ex = scanResult?.extracted;
+  const surname = ex?.surname || 'SHUKLA';
+  const givenName = ex?.given_name || 'AVIRAL';
+  const passportNo = ex?.passport_no || 'Z48291048';
+  const nationality = ex?.nationality || 'INDIAN';
+  const dob = ex?.dob || '19 SEP 1998';
+  const expiry = ex?.expiry || '11 JAN 2034';
+  const mrzLine1 = scanResult?.ocr?.mrz_lines?.[0] || 'P<INDSHUKLA<<AVIRAL<<<<<<<<<<<<<<<<<<<<<<<<';
+  const mrzLine2 = scanResult?.ocr?.mrz_lines?.[1] || 'Z482910484IND9809198M3201116<<<<<<<<<<<<<<02';
+  const faceStatus = scanResult?.face?.status;
+  const faceScore = scanResult?.face?.score;
+
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -72,13 +88,9 @@ export const MasterPassportDocument: React.FC<MasterPassportDocumentProps> = ({
     }
 
     const cycle = setInterval(() => {
-      // 1. Portrait activates
       setTimeout(() => setSweepZone('portrait'), 1200);
-      // 2. OCR Identity fields activate
       setTimeout(() => setSweepZone('fields'), 2500);
-      // 3. MRZ activates
       setTimeout(() => setSweepZone('mrz'), 3800);
-      // Return to baseline
       setTimeout(() => setSweepZone('none'), 4600);
     }, 5400);
 
@@ -102,13 +114,12 @@ export const MasterPassportDocument: React.FC<MasterPassportDocumentProps> = ({
         {/* Upper Specular Reflection Line on Document */}
         <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/[0.22] to-transparent pointer-events-none z-30" />
 
-          {/* Continuous Optical Laser Scanning Beam (Quiet & Precise) */}
-          {(mode === 'idle' || mode === 'optical' || mode === 'tampering') && (
-            <div className="absolute inset-x-0 h-[1.5px] bg-gradient-to-r from-transparent via-blue-400/70 to-transparent opacity-60 animate-slow-optical-sweep pointer-events-none z-30 shadow-[0_0_8px_rgba(59,130,246,0.3)]" />
-          )}
+        {/* Continuous Optical Laser Scanning Beam */}
+        {(mode === 'idle' || mode === 'optical' || mode === 'tampering') && (
+          <div className="absolute inset-x-0 h-[1.5px] bg-gradient-to-r from-transparent via-blue-400/70 to-transparent opacity-60 animate-slow-optical-sweep pointer-events-none z-30 shadow-[0_0_8px_rgba(59,130,246,0.3)]" />
+        )}
 
-
-        {/* ── STAGE 01: OPTICAL ALIGNMENT GUIDES (Functional & Forensic) ── */}
+        {/* ── STAGE 01: OPTICAL ALIGNMENT GUIDES ── */}
         <AnimatePresence>
           {mode === 'optical' && (
             <motion.div
@@ -118,12 +129,10 @@ export const MasterPassportDocument: React.FC<MasterPassportDocumentProps> = ({
               transition={{ duration: 0.3 }}
               className="absolute inset-0 pointer-events-none z-20"
             >
-              {/* Corner Alignment Reticles */}
               <div className="absolute top-3 left-3 w-4 h-4 border-t border-l border-blue-400/60" />
               <div className="absolute top-3 right-3 w-4 h-4 border-t border-r border-blue-400/60" />
               <div className="absolute bottom-3 left-3 w-4 h-4 border-b border-l border-blue-400/60" />
               <div className="absolute bottom-3 right-3 w-4 h-4 border-b border-r border-blue-400/60" />
-              {/* Horizon Calibration Hairline */}
               <div className="absolute inset-x-4 top-1/2 -translate-y-1/2 h-[1px] border-t border-dashed border-blue-400/25" />
               <div className="absolute right-4 top-1/2 -translate-y-6 text-[8px] font-mono text-blue-400/70 bg-black/60 px-1.5 py-0.5 rounded border border-blue-400/20">
                 0.0° ALIGNED
@@ -132,69 +141,41 @@ export const MasterPassportDocument: React.FC<MasterPassportDocumentProps> = ({
           )}
         </AnimatePresence>
 
-        {/* ──────────────────────────────────────────────────────────── */}
-        {/* HEADER BAND */}
-        {/* ──────────────────────────────────────────────────────────── */}
+        {/* ── HEADER BAND ── */}
         <motion.div
           style={tiltEffect ? { x: substrateX, y: substrateY } : {}}
           className="relative z-10 flex items-center justify-between pb-3.5 border-b border-white/[0.07]"
         >
           <div className="flex items-center gap-3">
-            {/* National Crest Deboss Emblem */}
             <div className="w-8 h-8 rounded-full border border-amber-400/25 bg-gradient-to-b from-amber-400/10 via-amber-400/5 to-transparent flex items-center justify-center shadow-inner shrink-0">
               <svg className="w-4 h-4 text-amber-300/80" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <circle cx="12" cy="12" r="9" strokeWidth="1.5" />
                 <path d="M12 3a9 9 0 0 1 0 18M12 3a9 9 0 0 0 0 18M3 12h18" strokeWidth="1" />
               </svg>
             </div>
-
-            {/* India Flag (Inline SVG) */}
-            <svg
-              width="22"
-              height="14"
-              viewBox="0 0 24 16"
-              xmlns="http://www.w3.org/2000/svg"
-              aria-label="India flag"
-              className="shrink-0"
-              style={{ display: 'inline-block', marginLeft: 2 }}
-            >
+            <svg width="22" height="14" viewBox="0 0 24 16" xmlns="http://www.w3.org/2000/svg" aria-label="India flag" className="shrink-0" style={{ display: 'inline-block', marginLeft: 2 }}>
               <rect width="24" height="16" fill="#FF9933" />
               <rect y="5.333" width="24" height="5.333" fill="#FFFFFF" />
               <rect y="10.666" width="24" height="5.333" fill="#138A2B" />
               <circle cx="12" cy="8" r="3" fill="#054189" />
             </svg>
-
             <div>
-              <p className="text-[9px] font-mono tracking-[0.2em] text-[#8e95a5] uppercase">
-                REPUBLIC OF INDIA
-              </p>
-              <p className="text-xs font-semibold text-[#f5f5f7] tracking-wider">
-                PASSPORT
-              </p>
+              <p className="text-[9px] font-mono tracking-[0.2em] text-[#8e95a5] uppercase">REPUBLIC OF INDIA</p>
+              <p className="text-xs font-semibold text-[#f5f5f7] tracking-wider">PASSPORT</p>
             </div>
           </div>
-
           <div className="flex items-center gap-3">
-            {/* Metallic Gold e-Passport Biometric Chip Mark */}
-            <div
-              title="ICAO Biometric Chip Specimen"
-              className="w-5 h-3.5 rounded border border-amber-300/50 bg-gradient-to-r from-amber-300/20 via-amber-200/35 to-amber-400/20 relative flex items-center justify-center shadow-[0_0_6px_rgba(251,191,36,0.12)]"
-            >
+            <div title="ICAO Biometric Chip Specimen" className="w-5 h-3.5 rounded border border-amber-300/50 bg-gradient-to-r from-amber-300/20 via-amber-200/35 to-amber-400/20 relative flex items-center justify-center shadow-[0_0_6px_rgba(251,191,36,0.12)]">
               <div className="w-2.5 h-2.5 rounded-full border border-amber-300/70" />
               <div className="absolute inset-x-0 h-0.5 bg-amber-300/70" />
             </div>
-
-            <span className="text-[9px] font-mono text-[#7d869a] tracking-wider">
-              TYPE: P / IND
-            </span>
+            <span className="text-[9px] font-mono text-[#7d869a] tracking-wider">TYPE: P / IND</span>
           </div>
         </motion.div>
 
-        {/* ──────────────────────────────────────────────────────────── */}
-        {/* PASSPORT DATA BODY */}
-        {/* ──────────────────────────────────────────────────────────── */}
+        {/* ── PASSPORT DATA BODY ── */}
         <div className="relative z-10 grid grid-cols-12 gap-4 sm:gap-6 items-center my-auto pt-2">
-          {/* Portrait Column (Differential Parallax & Uploaded Specimen Asset) */}
+          {/* Portrait Column */}
           <div className="col-span-4">
             <motion.div
               style={tiltEffect ? { x: portraitX, y: portraitY } : {}}
@@ -204,27 +185,16 @@ export const MasterPassportDocument: React.FC<MasterPassportDocumentProps> = ({
                   : 'border-white/[0.12] shadow-[0_0_12px_rgba(0,0,0,0.4)]'
               }`}
             >
-              {/* Security Hologram Watermark & Fine Scanline Overlay */}
               <div className="absolute inset-0 bg-passport-fine-print opacity-20 pointer-events-none z-10" />
-
-              {/* Primary Specimen Image: /images/fakepassport.png */}
               <div className="relative w-full h-full rounded overflow-hidden bg-slate-950 flex items-center justify-center">
-                <img
-                  src={fakePassportImg}
-                  alt="Uploaded Specimen"
-                  className="w-full h-full object-cover object-top transition-transform duration-500"
-                />
-
-                {/* Subtle Forensic Vignette */}
+                <img src={fakePassportImg} alt="Uploaded Specimen" className="w-full h-full object-cover object-top transition-transform duration-500" />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/50 via-transparent to-slate-950/10 pointer-events-none" />
-
-                {/* Ghost Crest Overlay */}
                 <div className="absolute bottom-1 right-1 w-5 h-5 rounded-full border border-white/30 bg-black/40 opacity-70 flex items-center justify-center backdrop-blur-xs z-10">
                   <span className="text-[5px] font-mono text-white">IND</span>
                 </div>
               </div>
 
-              {/* FACE DETECTION OVERLAY (Active in 'face' stage) */}
+              {/* FACE DETECTION OVERLAY */}
               <AnimatePresence>
                 {(mode === 'face' || sweepZone === 'portrait') && (
                   <motion.div
@@ -235,19 +205,16 @@ export const MasterPassportDocument: React.FC<MasterPassportDocumentProps> = ({
                     className="absolute inset-1 border border-teal-400/70 rounded pointer-events-none flex flex-col justify-between p-1 bg-teal-500/5 z-20"
                   >
                     <div className="flex justify-between items-center text-[7px] font-mono text-teal-300 bg-black/70 px-1 py-0.5 rounded">
-                      <span>68 PTS</span>
-                      <span className="text-emerald-400 font-semibold">99.1%</span>
+                      <span>{faceStatus === 'not_attempted' ? 'N/A' : 'DETECTED'}</span>
+                      <span className="text-emerald-400 font-semibold">{faceScore ? `${faceScore}%` : 'N/A'}</span>
                     </div>
-
-                    {/* Biometric Landmark Nodes (Forensic Points) */}
                     <div className="flex justify-around items-center px-1 py-2 opacity-80">
                       <div className="w-1 h-1 rounded-full bg-teal-300" />
                       <div className="w-1 h-1 rounded-full bg-teal-300 animate-pulse" />
                       <div className="w-1 h-1 rounded-full bg-teal-300" />
                     </div>
-
                     <div className="text-center text-[7px] font-mono text-teal-300 font-medium tracking-wider bg-black/70 py-0.5 rounded">
-                      MATCH CONFIRMED
+                      {faceStatus === 'match' ? 'MATCH CONFIRMED' : faceStatus === 'not_attempted' ? 'NOT ATTEMPTED' : faceStatus?.toUpperCase() || 'DETECTING'}
                     </div>
                   </motion.div>
                 )}
@@ -255,122 +222,62 @@ export const MasterPassportDocument: React.FC<MasterPassportDocumentProps> = ({
             </motion.div>
           </div>
 
-          {/* Identity Fields Column (Differential Parallax) */}
+          {/* Identity Fields Column */}
           <motion.div
             style={tiltEffect ? { x: fieldsX, y: fieldsY } : {}}
             className="col-span-8 space-y-2 text-[11px] font-sans"
           >
             {/* Surname */}
-            <div
-              className={`p-1.5 rounded transition-all duration-300 relative ${
-                sweepZone === 'fields' || mode === 'ocr'
-                  ? 'bg-blue-500/10 border border-blue-400/40'
-                  : ''
-              }`}
-            >
+            <div className={`p-1.5 rounded transition-all duration-300 relative ${sweepZone === 'fields' || mode === 'ocr' ? 'bg-blue-500/10 border border-blue-400/40' : ''}`}>
               <div className="flex items-center justify-between">
-                <span className="text-[8px] font-mono text-[#7d869a] uppercase tracking-wider block">
-                  SURNAME
-                </span>
-                {mode === 'ocr' && (
-                  <span className="text-[7px] font-mono text-blue-400">99.9%</span>
-                )}
+                <span className="text-[8px] font-mono text-[#7d869a] uppercase tracking-wider block">SURNAME</span>
+                {mode === 'ocr' && <span className="text-[7px] font-mono text-blue-400">99.9%</span>}
               </div>
-              <p className="font-bold text-slate-100 tracking-wider text-xs sm:text-sm">
-                SHUKLA
-              </p>
+              <p className="font-bold text-slate-100 tracking-wider text-xs sm:text-sm">{surname}</p>
             </div>
 
             {/* Given Names */}
-            <div
-              className={`p-1.5 rounded transition-all duration-300 ${
-                sweepZone === 'fields' || mode === 'ocr'
-                  ? 'bg-blue-500/10 border border-blue-400/40'
-                  : ''
-              }`}
-            >
+            <div className={`p-1.5 rounded transition-all duration-300 ${sweepZone === 'fields' || mode === 'ocr' ? 'bg-blue-500/10 border border-blue-400/40' : ''}`}>
               <div className="flex items-center justify-between">
-                <span className="text-[8px] font-mono text-[#7d869a] uppercase tracking-wider block">
-                  GIVEN NAMES
-                </span>
-                {mode === 'ocr' && (
-                  <span className="text-[7px] font-mono text-blue-400">99.8%</span>
-                )}
+                <span className="text-[8px] font-mono text-[#7d869a] uppercase tracking-wider block">GIVEN NAMES</span>
+                {mode === 'ocr' && <span className="text-[7px] font-mono text-blue-400">99.8%</span>}
               </div>
-              <p className="font-semibold text-slate-200 tracking-wider">
-                AVIRAL
-              </p>
+              <p className="font-semibold text-slate-200 tracking-wider">{givenName}</p>
             </div>
 
             {/* Document Number & Nationality */}
             <div className="grid grid-cols-2 gap-2">
-              <div
-                className={`p-1.5 rounded transition-all duration-300 ${
-                  sweepZone === 'fields' || mode === 'ocr' || mode === 'validation'
-                    ? 'bg-blue-500/10 border border-blue-400/40'
-                    : ''
-                }`}
-              >
+              <div className={`p-1.5 rounded transition-all duration-300 ${sweepZone === 'fields' || mode === 'ocr' || mode === 'validation' ? 'bg-blue-500/10 border border-blue-400/40' : ''}`}>
                 <div className="flex items-center justify-between">
-                  <span className="text-[8px] font-mono text-[#7d869a] uppercase tracking-wider block">
-                    PASSPORT NO.
-                  </span>
-                  {mode === 'validation' && (
-                    <span className="text-[7px] font-mono text-emerald-400">VALID</span>
-                  )}
+                  <span className="text-[8px] font-mono text-[#7d869a] uppercase tracking-wider block">PASSPORT NO.</span>
+                  {mode === 'validation' && <span className="text-[7px] font-mono text-emerald-400">VALID</span>}
                 </div>
-                <p className="font-mono font-semibold text-slate-100 text-xs">
-                  Z48291048
-                </p>
+                <p className="font-mono font-semibold text-slate-100 text-xs">{passportNo}</p>
               </div>
-
               <div className="p-1.5">
-                <span className="text-[8px] font-mono text-[#7d869a] uppercase tracking-wider block">
-                  NATIONALITY
-                </span>
-                <p className="font-semibold text-slate-200">INDIAN</p>
+                <span className="text-[8px] font-mono text-[#7d869a] uppercase tracking-wider block">NATIONALITY</span>
+                <p className="font-semibold text-slate-200">{nationality}</p>
               </div>
             </div>
 
             {/* Dates */}
             <div className="grid grid-cols-2 gap-2">
-              <div
-                className={`p-1.5 rounded transition-all duration-300 ${
-                  sweepZone === 'fields' || mode === 'ocr'
-                    ? 'bg-blue-500/10 border border-blue-400/35'
-                    : ''
-                }`}
-              >
-                <span className="text-[8px] font-mono text-[#7d869a] uppercase tracking-wider block">
-                  DATE OF BIRTH
-                </span>
-                <p className="font-mono text-[10px] text-slate-300">19 SEP 1998</p>
+              <div className={`p-1.5 rounded transition-all duration-300 ${sweepZone === 'fields' || mode === 'ocr' ? 'bg-blue-500/10 border border-blue-400/35' : ''}`}>
+                <span className="text-[8px] font-mono text-[#7d869a] uppercase tracking-wider block">DATE OF BIRTH</span>
+                <p className="font-mono text-[10px] text-slate-300">{dob}</p>
               </div>
-
-              <div
-                className={`p-1.5 rounded transition-all duration-300 ${
-                  sweepZone === 'fields' || mode === 'ocr' || mode === 'validation'
-                    ? 'bg-blue-500/10 border border-blue-400/35'
-                    : ''
-                }`}
-              >
+              <div className={`p-1.5 rounded transition-all duration-300 ${sweepZone === 'fields' || mode === 'ocr' || mode === 'validation' ? 'bg-blue-500/10 border border-blue-400/35' : ''}`}>
                 <div className="flex items-center justify-between">
-                  <span className="text-[8px] font-mono text-[#7d869a] uppercase tracking-wider block">
-                    DATE OF EXPIRY
-                  </span>
-                  {mode === 'validation' && (
-                    <span className="text-[7px] font-mono text-emerald-400">UNEXPIRED</span>
-                  )}
+                  <span className="text-[8px] font-mono text-[#7d869a] uppercase tracking-wider block">DATE OF EXPIRY</span>
+                  {mode === 'validation' && <span className="text-[7px] font-mono text-emerald-400">UNEXPIRED</span>}
                 </div>
-                <p className="font-mono text-[10px] text-emerald-400 font-medium">11 JAN 2034</p>
+                <p className="font-mono text-[10px] text-emerald-400 font-medium">{expiry}</p>
               </div>
             </div>
           </motion.div>
         </div>
 
-        {/* ──────────────────────────────────────────────────────────── */}
-        {/* FORENSIC TAMPERING INSPECTION (Subtle Forensic Substrate Grid) */}
-        {/* ──────────────────────────────────────────────────────────── */}
+        {/* ── FORENSIC TAMPERING INSPECTION ── */}
         <AnimatePresence>
           {mode === 'tampering' && (
             <motion.div
@@ -385,19 +292,13 @@ export const MasterPassportDocument: React.FC<MasterPassportDocumentProps> = ({
                 <span>SUBSTRATE ANALYSIS: NOMINAL</span>
                 <span className="text-emerald-400">VARIANCE: 0.02%</span>
               </div>
-
-              {/* Minimal Forensic Substrate Micro-Scan Grid */}
               <div className="w-full h-24 border border-white/[0.08] rounded bg-white/[0.01] grid grid-cols-6 grid-rows-3 gap-1 p-1">
                 {Array.from({ length: 18 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="border border-white/[0.04] rounded flex items-center justify-center text-[7px] font-mono text-slate-400"
-                  >
+                  <div key={i} className="border border-white/[0.04] rounded flex items-center justify-center text-[7px] font-mono text-slate-400">
                     PASS
                   </div>
                 ))}
               </div>
-
               <div className="flex items-center justify-between text-[9px] font-mono text-emerald-400">
                 <span>ZERO FORGERY ARTIFACTS</span>
                 <span>FONTS UNIFORM</span>
@@ -406,9 +307,7 @@ export const MasterPassportDocument: React.FC<MasterPassportDocumentProps> = ({
           )}
         </AnimatePresence>
 
-        {/* ──────────────────────────────────────────────────────────── */}
-        {/* VERIFIED AUTHENTICATION EMBOSS SEAL (Active in 'verified' mode) */}
-        {/* ──────────────────────────────────────────────────────────── */}
+        {/* ── VERIFIED AUTHENTICATION EMBOSS SEAL ── */}
         <AnimatePresence>
           {mode === 'verified' && (
             <motion.div
@@ -429,9 +328,7 @@ export const MasterPassportDocument: React.FC<MasterPassportDocumentProps> = ({
           )}
         </AnimatePresence>
 
-        {/* ──────────────────────────────────────────────────────────── */}
-        {/* ICAO 9303 MACHINE READABLE ZONE (MRZ) */}
-        {/* ──────────────────────────────────────────────────────────── */}
+        {/* ── ICAO 9303 MACHINE READABLE ZONE (MRZ) ── */}
         <motion.div
           style={tiltEffect ? { x: fieldsX, y: fieldsY } : {}}
           className={`relative z-10 pt-3 border-t border-white/[0.08] bg-black/45 rounded-lg p-2 font-mono text-[8px] sm:text-[9px] tracking-[0.08em] sm:tracking-[0.2em] leading-relaxed text-slate-300/90 whitespace-pre overflow-x-auto select-all transition-all duration-300 ${
@@ -445,7 +342,7 @@ export const MasterPassportDocument: React.FC<MasterPassportDocumentProps> = ({
               [MRZ REGION / CHECKSUM 7-3-1]
             </span>
           )}
-          {'P<INDSHUKLA<<AVIRAL<<<<<<<<<<<<<<<<<<<<<<<<<<\nZ482910484IND9809198M3201116<<<<<<<<<<<<<<02'}
+          {`${mrzLine1}\n${mrzLine2}`}
         </motion.div>
       </motion.div>
     </div>

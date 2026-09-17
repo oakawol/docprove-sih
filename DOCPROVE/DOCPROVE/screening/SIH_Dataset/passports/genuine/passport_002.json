@@ -1,0 +1,125 @@
+{
+  "doc_type": "passport",
+  "label": "genuine",
+  "source": null,
+  "fields": {
+    "doc_id": "002",
+    "surname": "MEHTA",
+    "given_name": "NEHA",
+    "name": "NEHA MEHTA",
+    "sex": "F",
+    "dob": "15/05/1999",
+    "place_of_birth": "LUCKNOW",
+    "nationality": "TESTLANDIAN",
+    "country_code": "TST",
+    "passport_no": "TESTF4432",
+    "file_no": "TF5479144",
+    "issue": "06/06/2023",
+    "expiry": "03/06/2033",
+    "place_of_issue": "TESTPUR",
+    "photo_seed": 638721,
+    "signature_name": "NEHA MEHTA",
+    "mrz": [
+      "P<TSTMEHTA<<NEHA<<<<<<<<<<<<<<<<<<<<<<<<<<<<",
+      "TESTF44324TST9905153F3306035TF5479144<<<<<40"
+    ]
+  },
+  "boxes": {
+    "photo": [
+      37,
+      97,
+      233,
+      343
+    ],
+    "type_code": [
+      266,
+      118,
+      348,
+      142
+    ],
+    "passport_no": [
+      656,
+      118,
+      781,
+      142
+    ],
+    "surname": [
+      266,
+      178,
+      352,
+      202
+    ],
+    "given_name": [
+      266,
+      238,
+      337,
+      262
+    ],
+    "nationality": [
+      656,
+      178,
+      819,
+      202
+    ],
+    "sex": [
+      656,
+      238,
+      677,
+      262
+    ],
+    "dob": [
+      266,
+      298,
+      382,
+      322
+    ],
+    "place_of_birth": [
+      656,
+      298,
+      779,
+      322
+    ],
+    "issue": [
+      266,
+      358,
+      382,
+      382
+    ],
+    "expiry": [
+      656,
+      358,
+      772,
+      382
+    ],
+    "place_of_issue": [
+      266,
+      418,
+      377,
+      442
+    ],
+    "file_no": [
+      656,
+      418,
+      774,
+      442
+    ],
+    "signature": [
+      270,
+      470,
+      590,
+      516
+    ],
+    "barcode": [
+      660,
+      468,
+      940,
+      514
+    ],
+    "mrz": [
+      30,
+      568,
+      976,
+      650
+    ]
+  }
+}

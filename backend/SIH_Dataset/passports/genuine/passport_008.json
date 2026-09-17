@@ -1,0 +1,125 @@
+{
+  "doc_type": "passport",
+  "label": "genuine",
+  "source": null,
+  "fields": {
+    "doc_id": "008",
+    "surname": "BHATIA",
+    "given_name": "DIVYA",
+    "name": "DIVYA BHATIA",
+    "sex": "F",
+    "dob": "04/01/1996",
+    "place_of_birth": "NAGPUR",
+    "nationality": "TESTLANDIAN",
+    "country_code": "TST",
+    "passport_no": "TESTA2776",
+    "file_no": "TF8290770",
+    "issue": "19/03/2020",
+    "expiry": "17/03/2030",
+    "place_of_issue": "PORT TESTA",
+    "photo_seed": 763935,
+    "signature_name": "DIVYA BHATIA",
+    "mrz": [
+      "P<TSTBHATIA<<DIVYA<<<<<<<<<<<<<<<<<<<<<<<<<<",
+      "TESTA27764TST9601042F3003172TF8290770<<<<<72"
+    ]
+  },
+  "boxes": {
+    "photo": [
+      37,
+      97,
+      233,
+      343
+    ],
+    "type_code": [
+      266,
+      118,
+      348,
+      142
+    ],
+    "passport_no": [
+      656,
+      118,
+      784,
+      142
+    ],
+    "surname": [
+      266,
+      178,
+      357,
+      202
+    ],
+    "given_name": [
+      266,
+      238,
+      342,
+      262
+    ],
+    "nationality": [
+      656,
+      178,
+      819,
+      202
+    ],
+    "sex": [
+      656,
+      238,
+      677,
+      262
+    ],
+    "dob": [
+      266,
+      298,
+      382,
+      322
+    ],
+    "place_of_birth": [
+      656,
+      298,
+      760,
+      322
+    ],
+    "issue": [
+      266,
+      358,
+      382,
+      382
+    ],
+    "expiry": [
+      656,
+      358,
+      772,
+      382
+    ],
+    "place_of_issue": [
+      266,
+      418,
+      413,
+      442
+    ],
+    "file_no": [
+      656,
+      418,
+      774,
+      442
+    ],
+    "signature": [
+      270,
+      470,
+      590,
+      516
+    ],
+    "barcode": [
+      660,
+      468,
+      940,
+      514
+    ],
+    "mrz": [
+      30,
+      568,
+      976,
+      650
+    ]
+  }
+}

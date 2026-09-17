@@ -1,0 +1,141 @@
+{
+  "doc_type": "visa",
+  "label": "tampered",
+  "source": "visas\\genuine\\visa_002.png",
+  "tamper": {
+    "tamper_type": "photo",
+    "field": "photo",
+    "original_value": "photo_v0",
+    "new_value": "photo_v1",
+    "mrz_consistent": null
+  },
+  "tamper_bbox": [
+    37,
+    97,
+    203,
+    303
+  ],
+  "fields": {
+    "doc_id": "002",
+    "surname": "MEHTA",
+    "given_name": "NEHA",
+    "name": "NEHA MEHTA",
+    "sex": "F",
+    "dob": "15/05/1999",
+    "place_of_birth": "LUCKNOW",
+    "nationality": "TESTLANDIAN",
+    "country_code": "TST",
+    "passport_no": "TESTF4432",
+    "file_no": "TF5479144",
+    "issue": "06/06/2023",
+    "expiry": "03/06/2033",
+    "place_of_issue": "TESTPUR",
+    "photo_seed": 638721,
+    "signature_name": "NEHA MEHTA",
+    "mrz": [
+      "P<TSTMEHTA<<NEHA<<<<<<<<<<<<<<<<<<<<<<<<<<<<",
+      "TESTF44324TST9905153F3306035TF5479144<<<<<40"
+    ],
+    "visa_no": "TSTV271339",
+    "visa_type": "TRANSIT (X-1)",
+    "entries": "MULTIPLE",
+    "duration": "60 DAYS",
+    "valid_from": "18/03/2026",
+    "valid_until": "14/09/2026",
+    "port": "TESTGARH LAND BORDER",
+    "issued_at": "NEW TESTON",
+    "stamp_date": "18 MAR 2026"
+  },
+  "boxes": {
+    "photo": [
+      37,
+      97,
+      203,
+      303
+    ],
+    "visa_no": [
+      236,
+      114,
+      360,
+      137
+    ],
+    "passport_no": [
+      636,
+      114,
+      750,
+      137
+    ],
+    "name": [
+      236,
+      170,
+      376,
+      193
+    ],
+    "nationality": [
+      636,
+      170,
+      782,
+      193
+    ],
+    "dob": [
+      236,
+      226,
+      344,
+      249
+    ],
+    "sex": [
+      636,
+      226,
+      656,
+      249
+    ],
+    "visa_type": [
+      236,
+      282,
+      380,
+      309
+    ],
+    "entries": [
+      636,
+      282,
+      743,
+      305
+    ],
+    "valid_from": [
+      236,
+      338,
+      344,
+      361
+    ],
+    "valid_until": [
+      636,
+      338,
+      744,
+      361
+    ],
+    "duration": [
+      236,
+      394,
+      326,
+      417
+    ],
+    "issued_at": [
+      636,
+      394,
+      776,
+      417
+    ],
+    "port": [
+      236,
+      450,
+      504,
+      473
+    ],
+    "stamp": [
+      690,
+      360,
+      930,
+      600
+    ]
+  }
+}

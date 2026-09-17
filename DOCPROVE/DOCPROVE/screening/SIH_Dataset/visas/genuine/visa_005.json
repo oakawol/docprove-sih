@@ -1,0 +1,128 @@
+{
+  "doc_type": "visa",
+  "label": "genuine",
+  "source": null,
+  "fields": {
+    "doc_id": "005",
+    "surname": "SHARMA",
+    "given_name": "ABHINAV",
+    "name": "ABHINAV SHARMA",
+    "sex": "M",
+    "dob": "06/04/1980",
+    "place_of_birth": "PUNE",
+    "nationality": "TESTLANDIAN",
+    "country_code": "TST",
+    "passport_no": "TESTG1960",
+    "file_no": "TF3762152",
+    "issue": "16/08/2021",
+    "expiry": "14/08/2031",
+    "place_of_issue": "TESTGARH",
+    "photo_seed": 2261,
+    "signature_name": "ABHINAV SHARMA",
+    "mrz": [
+      "P<TSTSHARMA<<ABHINAV<<<<<<<<<<<<<<<<<<<<<<<<",
+      "TESTG19606TST8004060M3108147TF3762152<<<<<48"
+    ],
+    "visa_no": "TSTV399105",
+    "visa_type": "TRANSIT (X-1)",
+    "entries": "DOUBLE",
+    "duration": "180 DAYS",
+    "valid_from": "26/05/2025",
+    "valid_until": "26/05/2027",
+    "port": "TESTGARH LAND BORDER",
+    "issued_at": "TESTGARH",
+    "stamp_date": "26 MAY 2025"
+  },
+  "boxes": {
+    "photo": [
+      37,
+      97,
+      203,
+      303
+    ],
+    "visa_no": [
+      236,
+      114,
+      360,
+      137
+    ],
+    "passport_no": [
+      636,
+      114,
+      754,
+      137
+    ],
+    "name": [
+      236,
+      170,
+      426,
+      193
+    ],
+    "nationality": [
+      636,
+      170,
+      782,
+      193
+    ],
+    "dob": [
+      236,
+      226,
+      344,
+      249
+    ],
+    "sex": [
+      636,
+      226,
+      661,
+      249
+    ],
+    "visa_type": [
+      236,
+      282,
+      380,
+      309
+    ],
+    "entries": [
+      636,
+      282,
+      727,
+      305
+    ],
+    "valid_from": [
+      236,
+      338,
+      344,
+      361
+    ],
+    "valid_until": [
+      636,
+      338,
+      744,
+      361
+    ],
+    "duration": [
+      236,
+      394,
+      337,
+      417
+    ],
+    "issued_at": [
+      636,
+      394,
+      752,
+      417
+    ],
+    "port": [
+      236,
+      450,
+      504,
+      473
+    ],
+    "stamp": [
+      690,
+      360,
+      930,
+      600
+    ]
+  }
+}

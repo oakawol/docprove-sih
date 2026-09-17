@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant light (&:where(.light, .light *));
+
 @font-face {
   font-family: 'Geist';
   src: url('/node_modules/geist/dist/fonts/geist-sans/Geist-Variable.woff2') format('woff2');
@@ -35,22 +37,65 @@
     --border-highlight: rgba(255, 255, 255, 0.14);
     --accent-blue: #3b82f6;
     --accent-emerald: #10b981;
+    --particle-color: #F8FAFC;
+
+    --vignette-center: rgba(7, 9, 14, 0.40);
+    --vignette-outer: rgba(7, 9, 14, 0.85);
+
+    --nav-item-bg: rgba(255, 255, 255, 0.025);
+    --nav-item-active-bg: rgba(255, 255, 255, 0.04);
+    --nav-item-hover-bg: rgba(255, 255, 255, 0.055);
+
+    --stage-bg: rgba(11, 15, 23, 0.65);
+    --stage-active-bg: rgba(18, 24, 38, 0.95);
+    --stage-hover-bg: rgba(16, 21, 33, 0.85);
+    --scrollbar-track: #07090e;
+    --scrollbar-thumb: #181f2f;
+    --scrollbar-thumb-hover: #27334d;
+  }
+
+  html.light {
+    --bg-dark: #F5F4F0;
+    --bg-surface: #FFFFFF;
+    --bg-surface-elevated: #FAFAF8;
+    --text-primary: #111318;
+    --text-secondary: #555B66;
+    --text-muted: #737781;
+    --border-hairline: rgba(20, 24, 30, 0.10);
+    --border-highlight: rgba(20, 24, 30, 0.18);
+    --particle-color: #3A3D43;
+
+    --vignette-center: transparent;
+    --vignette-outer: rgba(245, 244, 240, 0.5);
+
+    --nav-item-bg: rgba(0, 0, 0, 0.03);
+    --nav-item-active-bg: rgba(0, 0, 0, 0.06);
+    --nav-item-hover-bg: rgba(0, 0, 0, 0.08);
+
+    --stage-bg: #EBE9E3;
+    --stage-active-bg: #FFFFFF;
+    --stage-hover-bg: #F0EEE8;
+    --scrollbar-track: #F5F4F0;
+    --scrollbar-thumb: #C8C7C1;
+    --scrollbar-thumb-hover: #A8A7A0;
   }
 
   html {
-    background-color: #07090e;
-    color: #f5f5f7;
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
     font-family: var(--font-sans);
+    transition: background-color 400ms cubic-bezier(0.22, 1, 0.36, 1), color 400ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   body {
-    background-color: #07090e;
-    color: #f5f5f7;
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
     overflow-x: hidden;
     margin: 0;
     padding: 0;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    transition: background-color 400ms cubic-bezier(0.22, 1, 0.36, 1), color 400ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   /* Minimal Precision Scrollbar */
@@ -60,16 +105,16 @@
   }
 
   ::-webkit-scrollbar-track {
-    background: #07090e;
+    background: var(--scrollbar-track);
   }
 
   ::-webkit-scrollbar-thumb {
-    background: #181f2f;
+    background: var(--scrollbar-thumb);
     border-radius: 9999px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: #27334d;
+    background: var(--scrollbar-thumb-hover);
   }
 }
 
@@ -103,6 +148,13 @@ html.lenis, html.lenis body {
     radial-gradient(ellipse 70% 40% at 50% 90%, rgba(15, 23, 42, 0.18) 0%, transparent 80%);
 }
 
+html.light .bg-ambient-light {
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(59, 130, 246, 0.08) 0%, transparent 70%),
+    radial-gradient(circle 600px at 50% 35%, rgba(255, 255, 255, 0.7) 0%, transparent 80%),
+    radial-gradient(ellipse 70% 40% at 50% 90%, rgba(148, 163, 184, 0.12) 0%, transparent 80%);
+}
+
 /* Architectural Luxury Surfaces */
 .surface-control {
   background: rgba(12, 16, 27, 0.78);
@@ -111,6 +163,12 @@ html.lenis, html.lenis body {
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-top-color: rgba(255, 255, 255, 0.14);
   box-shadow: 0 16px 40px -15px rgba(0, 0, 0, 0.7), 0 1px 0 0 rgba(255, 255, 255, 0.05) inset;
+}
+
+html.light .surface-control {
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(20, 24, 30, 0.10);
+  box-shadow: 0 16px 40px -15px rgba(0, 0, 0, 0.08);
 }
 
 .surface-card {
@@ -122,10 +180,21 @@ html.lenis, html.lenis body {
   box-shadow: 0 20px 48px -18px rgba(0, 0, 0, 0.75);
 }
 
+html.light .surface-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(20, 24, 30, 0.10);
+  box-shadow: 0 12px 32px -12px rgba(20, 24, 30, 0.06);
+}
+
 .surface-card-subtle {
   background: rgba(15, 20, 34, 0.55);
   backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+html.light .surface-card-subtle {
+  background: #F7F7F4;
+  border: 1px solid rgba(20, 24, 30, 0.08);
 }
 
 .surface-interactive {
@@ -136,12 +205,24 @@ html.lenis, html.lenis body {
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+html.light .surface-interactive {
+  background: #FFFFFF;
+  border: 1px solid rgba(20, 24, 30, 0.10);
+  box-shadow: 0 8px 24px -8px rgba(20, 24, 30, 0.06);
+}
+
 .surface-interactive:hover {
   background: rgba(17, 23, 38, 0.9);
   border-color: rgba(255, 255, 255, 0.15);
   border-top-color: rgba(255, 255, 255, 0.22);
   transform: translateY(-2px);
   box-shadow: 0 24px 50px -15px rgba(0, 0, 0, 0.85);
+}
+
+html.light .surface-interactive:hover {
+  background: #FFFFFF;
+  border-color: rgba(20, 24, 30, 0.18);
+  box-shadow: 0 16px 36px -10px rgba(20, 24, 30, 0.10);
 }
 
 /* Subtle Guilloche Security Pattern for the Physical Passport */
@@ -153,6 +234,13 @@ html.lenis, html.lenis body {
   background-size: 14px 14px, 100% 100%;
 }
 
+html.light .bg-guilloche {
+  background-color: #E7E3D8;
+  background-image:
+    radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.05) 1px, transparent 1px),
+    radial-gradient(circle at 0% 0%, rgba(59, 130, 246, 0.08) 0%, transparent 60%);
+}
+
 .bg-passport-fine-print {
   background-image: repeating-linear-gradient(
     0deg,
@@ -160,6 +248,16 @@ html.lenis, html.lenis body {
     transparent 11px,
     rgba(255, 255, 255, 0.022) 11px,
     rgba(255, 255, 255, 0.022) 12px
+  );
+}
+
+html.light .bg-passport-fine-print {
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 11px,
+    rgba(15, 23, 42, 0.04) 11px,
+    rgba(15, 23, 42, 0.04) 12px
   );
 }
 
@@ -175,6 +273,105 @@ html.lenis, html.lenis body {
 
 .group:hover .animate-shimmer {
   animation: button-shimmer 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ──────────────────────────────────────────────────────────── */
+/* PREMIUM RAINBOW HOVER INTERACTION SYSTEM                     */
+/* ──────────────────────────────────────────────────────────── */
+
+@keyframes rainbow-spin {
+  0% {
+    --rainbow-angle: 0deg;
+  }
+  100% {
+    --rainbow-angle: 360deg;
+  }
+}
+
+@property --rainbow-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+.rainbow-hover-target {
+  position: relative;
+  transition: transform 400ms cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 400ms cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 400ms cubic-bezier(0.22, 1, 0.36, 1),
+              background-color 400ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.rainbow-hover-target::before {
+  content: '';
+  position: absolute;
+  inset: -1.5px;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(
+    from var(--rainbow-angle, 0deg),
+    #ef4444,
+    #f97316,
+    #eab308,
+    #22c55e,
+    #06b6d4,
+    #3b82f6,
+    #a855f7,
+    #ef4444
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 400ms cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: 2;
+}
+
+.rainbow-hover-target::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--rainbow-angle, 0deg),
+    rgba(239, 68, 68, 0.25),
+    rgba(249, 115, 22, 0.25),
+    rgba(234, 179, 8, 0.25),
+    rgba(34, 197, 94, 0.25),
+    rgba(6, 182, 212, 0.25),
+    rgba(59, 130, 246, 0.25),
+    rgba(168, 85, 247, 0.25),
+    rgba(239, 68, 68, 0.25)
+  );
+  filter: blur(6px);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 400ms cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: 1;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .rainbow-hover-target:hover {
+    transform: translateY(-2px);
+  }
+
+  .rainbow-hover-target:hover::before {
+    opacity: 1;
+    animation: rainbow-spin 4s linear infinite;
+  }
+
+  .rainbow-hover-target:hover::after {
+    opacity: 0.7;
+    animation: rainbow-spin 4s linear infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rainbow-hover-target::before,
+  .rainbow-hover-target::after {
+    animation: none !important;
+  }
 }
 
 /* Gentle Pulsing Indicator (Every 4.5 seconds, not frantic) */
@@ -253,5 +450,42 @@ html.lenis, html.lenis body {
 .num-tabular {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
+}
+
+/* Forensic Document Scan Line — Ultra-subtle, smooth, 1px thin, GPU accelerated */
+@keyframes forensic-scan-line {
+  0% {
+    transform: translateY(4px);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.18;
+  }
+  90% {
+    opacity: 0.18;
+  }
+  100% {
+    transform: translateY(188px);
+    opacity: 0;
+  }
+}
+
+.animate-forensic-scan {
+  animation: forensic-scan-line 6s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  will-change: transform, opacity;
+}
+
+/* Subtle Forensic Grid Overlay for Tampering Stage */
+@keyframes forensic-grid-pulse {
+  0%, 100% {
+    opacity: 0.06;
+  }
+  50% {
+    opacity: 0.12;
+  }
+}
+
+.animate-forensic-grid {
+  animation: forensic-grid-pulse 3s ease-in-out infinite;
 }
 

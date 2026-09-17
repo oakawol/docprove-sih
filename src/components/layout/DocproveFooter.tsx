@@ -1,5 +1,4 @@
 import React from 'react';
-import { Logo } from '../brand/Logo';
 import { type ActivePage } from './DocproveNavbar';
 
 interface FooterProps {
@@ -8,57 +7,56 @@ interface FooterProps {
 
 export const DocproveFooter: React.FC<FooterProps> = ({ onSelectPage }) => {
   return (
-    <footer className="w-full border-t border-white/[0.06] bg-[#05070c] pt-14 pb-12 text-slate-400 text-xs">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-8 pb-10 border-b border-white/[0.06]">
-          {/* Brand Info */}
-          <div className="flex flex-col items-center md:items-start gap-2">
-            <Logo
-              size="md"
-              onClick={() => {
-                onSelectPage('verify');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-            />
-            <p className="text-[10px] font-mono tracking-[0.2em] text-slate-500 uppercase mt-1">
-              AI POWERED DOCUMENT INTELLIGENCE
-            </p>
+    <footer className="w-full border-t border-white/[0.08] light:border-black/[0.08] bg-[#07090e] light:bg-[#F5F4F0] pt-14 pb-14 text-xs relative z-10 select-none transition-colors duration-500">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+          
+          {/* CENTER: Central DocProve Signature Mark */}
+          <div className="flex flex-col items-center sm:items-start group cursor-default">
+            <div className="relative flex flex-col items-center sm:items-start transition-all duration-300 transform group-hover:-translate-y-0.5">
+              <span className="font-sans font-bold text-lg sm:text-xl tracking-[0.2em] uppercase text-[#f8fafc] light:text-[#0f172a] opacity-90 group-hover:opacity-100 transition-opacity duration-300">
+                DOCPROVE
+              </span>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="w-4 h-[1px] bg-white/20 light:bg-black/20 group-hover:w-6 transition-all duration-300" />
+                <span className="font-mono text-[10px] tracking-[0.25em] text-[#a1a1aa] light:text-[#475569] uppercase font-semibold">
+                  2026
+                </span>
+                <span className="w-4 h-[1px] bg-white/20 light:bg-black/20 group-hover:w-6 transition-all duration-300" />
+              </div>
+              <span className="mt-1 font-mono text-[9px] tracking-[0.18em] text-[#71717a] light:text-[#64748b] uppercase opacity-75">
+                DOCUMENT VERIFICATION
+              </span>
+            </div>
           </div>
 
-          {/* Minimal Links */}
-          <div className="flex items-center gap-8 text-xs font-sans font-medium tracking-wider">
+          {/* RIGHT: Simple Navigation Links */}
+          <div className="flex items-center justify-center sm:justify-end gap-8 text-xs font-sans font-medium tracking-wider">
             <button
               onClick={() => {
                 onSelectPage('verify');
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
-              className="text-slate-400 hover:text-white transition-colors cursor-pointer"
+              className="group relative text-[#a1a1aa] light:text-[#475569] hover:text-[#f8fafc] light:hover:text-[#0f172a] transition-all duration-300 cursor-pointer py-1.5 transform hover:-translate-y-0.5"
             >
-              VERIFY
+              <span className="relative z-10 uppercase tracking-widest text-[11px] font-semibold">VERIFY</span>
+              <span className="absolute inset-x-0 bottom-0 h-[1.5px] bg-[#E03131] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
             </button>
             <button
               onClick={() => {
                 onSelectPage('makers');
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
-              className="text-slate-400 hover:text-white transition-colors cursor-pointer"
+              className="group relative text-[#a1a1aa] light:text-[#475569] hover:text-[#f8fafc] light:hover:text-[#0f172a] transition-all duration-300 cursor-pointer py-1.5 transform hover:-translate-y-0.5"
             >
-              MAKERS
+              <span className="relative z-10 uppercase tracking-widest text-[11px] font-semibold">MAKERS</span>
+              <span className="absolute inset-x-0 bottom-0 h-[1.5px] bg-[#E03131] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
             </button>
           </div>
 
-          {/* SIH Factual Notice */}
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.02] border border-white/[0.06] text-[10px] font-mono text-slate-400">
-            <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
-            <span>SMART INDIA HACKATHON PROTOTYPE</span>
-          </div>
-        </div>
-
-        {/* Bottom Microcopy */}
-        <div className="pt-6 flex items-center justify-center text-center gap-3 text-[10px] text-slate-500 font-mono">
-          <p>© {new Date().getFullYear()} DOC PROVE. Independent Research Prototype.</p>
         </div>
       </div>
     </footer>
   );
 };
+
