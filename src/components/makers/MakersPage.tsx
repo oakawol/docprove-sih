@@ -186,23 +186,12 @@ const MakerDetailModal: React.FC<{
             </div>
           </div>
 
-          {/* Member Name & Role */}
-          <div className="space-y-2 max-w-sm">
-            <span className="text-[10px] font-mono tracking-[0.2em] uppercase font-semibold text-blue-400 light:text-blue-600">
-              {member.department}
-            </span>
+          {/* Member Name */}
+          <div className="space-y-1 max-w-sm">
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-white light:text-[#111318] font-sans">
               {member.name}
             </h2>
-            <p className="text-xs sm:text-sm font-mono text-[#8e95a5] light:text-[#555B66]">
-              {member.role}
-            </p>
           </div>
-
-          {/* Clean Description */}
-          <p className="text-xs sm:text-sm text-white/80 light:text-slate-700 leading-relaxed font-sans max-w-md px-2">
-            {member.bio}
-          </p>
 
           {/* Key Buttons: LinkedIn & GitHub Commits Page */}
           <div className="w-full pt-3 space-y-3">
@@ -319,24 +308,21 @@ const UniformMemberCard: React.FC<{
         {/* Cinematic Multi-stop Dark Vignette */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/45 to-transparent opacity-85 group-hover:opacity-95 transition-opacity duration-550 ease-[cubic-bezier(0.22,1,0.36,1)] pointer-events-none z-0" />
 
-        {/* Top Badges: Role Department & View Card Hint */}
-        <div className="absolute inset-x-0 top-0 p-4 sm:p-5 flex items-center justify-between z-20 pointer-events-none">
-          <span className="text-[9px] font-mono tracking-wider uppercase px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white/80 font-medium">
-            {member.department}
-          </span>
+        {/* Top Hover Hint */}
+        <div className="absolute inset-x-0 top-0 p-4 sm:p-5 flex items-center justify-end z-20 pointer-events-none">
           <motion.span
             animate={{
               opacity: isHovered ? 1 : 0,
               y: isHovered ? 0 : -4,
             }}
             transition={{ duration: 0.25 }}
-            className="text-[9px] font-mono tracking-widest uppercase px-2 py-0.5 rounded-full bg-blue-500/80 text-white font-bold backdrop-blur-sm shadow-md"
+            className="text-[9px] font-mono tracking-widest uppercase px-2.5 py-1 rounded-full bg-blue-500/80 text-white font-bold backdrop-blur-sm shadow-md"
           >
             CLICK TO INSPECT
           </motion.span>
         </div>
 
-        {/* Bottom Bar: Name, Subtitle, & Direct Action Links */}
+        {/* Bottom Bar: Name & Direct Action Links */}
         <div className="absolute inset-x-0 bottom-0 p-5 sm:p-6 z-20">
           <div className="flex items-end justify-between gap-3">
             <div className="min-w-0 flex-1">
@@ -349,9 +335,6 @@ const UniformMemberCard: React.FC<{
               >
                 {member.name}
               </motion.h3>
-              <p className="text-[11px] text-white/70 font-mono truncate mt-0.5">
-                {member.role}
-              </p>
             </div>
 
             {/* Direct Quick Action Social Links */}
