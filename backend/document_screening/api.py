@@ -131,6 +131,54 @@ def _get_client_ip(request: Request) -> str:
     return request.client.host if request.client else "unknown"
 
 
+def _get_device_type(request: Request) -> str:
+    """Parse User-Agent to determine device type and OS/browser."""
+    ua = request.headers.get("user-agent", "")
+    if not ua:
+        return "Unknown Device"
+
+    ua_lower = ua.lower()
+
+    # Detect bot/crawler/curl
+    if "curl" in ua_lower or "postman" in ua_lower or "python" in ua_lower or "bot" in ua_lower:
+        return f"API/Bot ({ua.split('/')[0]})"
+
+    # Detect platform / device
+    device = "Desktop"
+    if "ipad" in ua_lower or "tablet" in ua_lower or "playbook" in ua_lower:
+        device = "Tablet"
+    elif "mobi" in ua_lower or "iphone" in ua_lower or "android" in ua_lower:
+        device = "Mobile"
+
+    # Detect OS
+    os_name = "Unknown OS"
+    if "windows" in ua_lower:
+        os_name = "Windows"
+    elif "macintosh" in ua_lower or "mac os" in ua_lower:
+        os_name = "macOS"
+    elif "android" in ua_lower:
+        os_name = "Android"
+    elif "iphone" in ua_lower or "ipad" in ua_lower or "ios" in ua_lower:
+        os_name = "iOS"
+    elif "linux" in ua_lower:
+        os_name = "Linux"
+
+    # Detect Browser
+    browser = "Browser"
+    if "edg/" in ua_lower or "edge" in ua_lower:
+        browser = "Edge"
+    elif "chrome" in ua_lower and "chromium" not in ua_lower:
+        browser = "Chrome"
+    elif "safari" in ua_lower and "chrome" not in ua_lower:
+        browser = "Safari"
+    elif "firefox" in ua_lower:
+        browser = "Firefox"
+    elif "opera" in ua_lower or "opr/" in ua_lower:
+        browser = "Opera"
+
+    return f"{device} • {os_name} ({browser})"
+
+
 @app.post("/api/scan")
 async def api_scan(request: Request,
                    document: UploadFile = File(...),
@@ -138,9 +186,10 @@ async def api_scan(request: Request,
                    doc_type: str | None = None):
     session_id = request.headers.get("X-Docprove-Session") if request else None
     client_ip = _get_client_ip(request)
+    device_type = _get_device_type(request)
     client_host = client_ip
 
-    print(f"\n[UPLOAD LOG] Document received: '{document.filename}' | Client IP: {client_ip} | Session: {session_id or 'None'}")
+    print(f"\n[UPLOAD LOG] Document received: '{document.filename}' | Client IP: {client_ip} | Device: {device_type} | Session: {session_id or 'None'}")
 
     # This check intentionally happens before reading or decoding the upload.
     protection = protection_mod.check(DB_PATH, session_id, client_host)
@@ -194,7 +243,7 @@ async def api_scan(request: Request,
                         artifacts_dir=ARTIFACTS_DIR, scan_id=scan_id,
                         profile=_profile(), probe_image=probe_path,
                         save_history=True, db_path=DB_PATH,
-                        client_ip=client_ip)
+                        client_ip=client_ip, device_type=device_type)
     except Exception as exc:                                   # pragma: no cover
         raise HTTPException(500, f"Screening failed: {exc}") from exc
 

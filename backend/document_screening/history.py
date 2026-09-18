@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS scans (
     risk_level      TEXT,
     final_status    TEXT,
     client_ip       TEXT,
+    device_type     TEXT,
     extracted_json  TEXT,
     validation_json TEXT,
     mrz_json        TEXT,
@@ -60,11 +61,17 @@ def connect(db_path: str | Path = DEFAULT_DB) -> sqlite3.Connection:
     conn.row_factory = sqlite3.Row
     conn.executescript(SCHEMA)
 
-    # Auto-migrate if column is missing
+    # Auto-migrate if columns are missing
     cols = [col["name"] for col in conn.execute("PRAGMA table_info(scans)").fetchall()]
     if "client_ip" not in cols:
         try:
             conn.execute("ALTER TABLE scans ADD COLUMN client_ip TEXT")
+            conn.commit()
+        except Exception:
+            pass
+    if "device_type" not in cols:
+        try:
+            conn.execute("ALTER TABLE scans ADD COLUMN device_type TEXT")
             conn.commit()
         except Exception:
             pass
@@ -100,29 +107,30 @@ def _hamming(a: str, b: str) -> int:
     return sum(x != y for x, y in zip(a, b))
 
 
-def save_scan(result: dict[str, Any], *, client_ip: str | None = None, image_path=None, db_path: str | Path = DEFAULT_DB
+def save_scan(result: dict[str, Any], *, client_ip: str | None = None, device_type: str | None = None, image_path=None, db_path: str | Path = DEFAULT_DB
              ) -> None:
     """Persist a completed pipeline result (see pipeline.screen / report.build)."""
     extracted = result.get("extracted", {})
     photo_box = result.get("tampering", {}).get("diagnostics", {}).get("regions", {}).get("photo")
     photo_hash = _photo_hash(image_path, photo_box) if image_path is not None else None
     ip = client_ip or result.get("client_ip")
+    dev = device_type or result.get("device_type")
 
     with closing(connect(db_path)) as conn:
         conn.execute(
             """INSERT OR REPLACE INTO scans
                (scan_id, created_at, doc_type, name, document_no, dob, photo_hash,
-                risk_score, risk_level, final_status, client_ip, extracted_json, validation_json,
+                risk_score, risk_level, final_status, client_ip, device_type, extracted_json, validation_json,
                 mrz_json, tampering_json, face_json, checklist_json, reasons_json,
                 artifacts_json)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (
                 result["scan_id"], time.time(), result["doc_type"],
                 extracted.get("name") or extracted.get("given_name"),
                 extracted.get("passport_no") or extracted.get("visa_no"),
                 extracted.get("dob"), photo_hash,
                 result.get("risk", {}).get("score"), result.get("risk", {}).get("level"),
-                result.get("final_status"), ip,
+                result.get("final_status"), ip, dev,
                 json.dumps(extracted), json.dumps(result.get("validation", {})),
                 json.dumps(result.get("mrz", {})), json.dumps(result.get("tampering", {})),
                 json.dumps(result.get("face", {})), json.dumps(result.get("checklist", {})),

@@ -249,7 +249,7 @@
       </div>
       <table style="margin-top:14px;">
         <thead><tr><th>Time</th><th>Type</th><th>Name</th><th>Document</th>
-          <th>Score</th><th>Status</th></tr></thead>
+          <th>Score</th><th>Status</th><th>IP Address</th><th>Device / Client</th></tr></thead>
         <tbody id="hist-rows"></tbody>
       </table>
       <div class="empty hidden" id="hist-empty">No scans yet. Run one from the Scan tab.</div>
@@ -458,7 +458,9 @@ async function loadHistory(){
     tr.className = "history-row";
     tr.innerHTML = `<td>${t}</td><td>${r.doc_type}</td><td>${r.name||''}</td>
       <td>${r.document_no||''}</td><td>${r.risk_score ?? ''}</td>
-      <td><span class="tag ${r.risk_level==='HIGH RISK'?'tag-fail':r.risk_level==='SUSPICIOUS'?'tag-warn':'tag-pass'}">${r.risk_level||''}</span></td>`;
+      <td><span class="tag ${r.risk_level==='HIGH RISK'?'tag-fail':r.risk_level==='SUSPICIOUS'?'tag-warn':'tag-pass'}">${r.risk_level||''}</span></td>
+      <td style="font-family:monospace;font-size:11px;">${r.client_ip || '—'}</td>
+      <td style="font-size:11px;color:#555;">${r.device_type || '—'}</td>`;
     tr.onclick = () => window.open(`${API}/api/scan/${r.scan_id}/report.html`, "_blank");
     tbody.appendChild(tr);
   }

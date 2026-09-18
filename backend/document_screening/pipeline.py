@@ -97,6 +97,7 @@ def screen(image_path: str | Path | Image.Image, *, doc_type: str | None = None,
            probe_image: str | Path | Image.Image | None = None,
            save_history: bool = False, db_path: str | Path | None = None,
            client_ip: str | None = None,
+           device_type: str | None = None,
            ) -> dict[str, Any]:
     started = time.time()
     scan_id = scan_id or uuid.uuid4().hex[:12]
@@ -238,6 +239,7 @@ def screen(image_path: str | Path | Image.Image, *, doc_type: str | None = None,
         "final_status": risk["status"],
         "artifacts": artifacts,
         "client_ip": client_ip,
+        "device_type": device_type,
         "timings_ms": {
             "ocr": round(t_ocr * 1000), "validation": round(t_val * 1000),
             "mrz": round(t_mrz * 1000), "tampering": round(t_tamper * 1000),
@@ -248,6 +250,6 @@ def screen(image_path: str | Path | Image.Image, *, doc_type: str | None = None,
 
     # ---- Phase 11: audit trail ------------------------------------------------------
     if save_history:
-        history_mod.save_scan(report, client_ip=client_ip, image_path=img, db_path=db_path or history_mod.DEFAULT_DB)
+        history_mod.save_scan(report, client_ip=client_ip, device_type=device_type, image_path=img, db_path=db_path or history_mod.DEFAULT_DB)
 
     return report
