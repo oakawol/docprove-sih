@@ -68,13 +68,20 @@ export async function scanDocument(file: File, signal?: AbortSignal): Promise<Sc
 
   const url = `${API_BASE_URL}/api/scan`;
 
+  // Combine user signal with a 90-second timeout controller for cloud container cold start / OCR processing
+  const timeoutController = new AbortController();
+  const timeoutId = setTimeout(() => timeoutController.abort(), 90000);
+
+  const combinedSignal = signal ? AbortSignal.any([signal, timeoutController.signal]) : timeoutController.signal;
+
   try {
     const response = await fetch(url, {
       method: 'POST',
       body: formData,
-      signal,
+      signal: combinedSignal,
       headers: { 'X-Docprove-Session': getSessionId() },
     });
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       let errorMessage = `Verification failed (HTTP ${response.status})`;
