@@ -13,6 +13,7 @@ interface MakerMember {
   id: string;
   name: string;
   linkedin: string;
+  github?: string;
   imagePath: string;
 }
 
@@ -21,6 +22,7 @@ const MAKERS: MakerMember[] = [
     id: 'aviral',
     name: 'Aviral',
     linkedin: 'https://www.linkedin.com/in/oakawol/',
+    github: 'https://github.com/toodos',
     imagePath: aviralImage,
   },
   {
@@ -33,24 +35,28 @@ const MAKERS: MakerMember[] = [
     id: 'sana',
     name: 'Sana',
     linkedin: 'https://www.linkedin.com/in/sana-khan-1267a8365?utm_source=share_via&utm_content=profile&utm_medium=member_android',
+    github: 'https://github.com/sanakhan-197',
     imagePath: sanaImage,
   },
   {
     id: 'nishi',
     name: 'Nishi',
     linkedin: 'https://www.linkedin.com/in/nishi-mehra-46b87035b/',
+    github: 'https://github.com/nishimehra107-ux',
     imagePath: nishiImage,
   },
   {
     id: 'shreemai',
     name: 'Shreemai',
     linkedin: 'https://www.linkedin.com/in/shreemayi-mungi-7a90b9379/',
+    github: 'https://github.com/shree990',
     imagePath: shreemaiImage,
   },
   {
     id: 'bhuvan',
     name: 'Bhuvan',
     linkedin: 'https://www.linkedin.com/in/bhuvan-yadav-0b0b633b5/',
+    github: 'https://github.com/bhuvvann',
     imagePath: bhuvanImage,
   },
 ];
@@ -59,7 +65,7 @@ const UniformMemberCard: React.FC<{ member: MakerMember; index: number }> = ({ m
   const [isHovered, setIsHovered] = useState(false);
   const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLAnchorElement>) => {
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     // Normalize -0.5 to 0.5 and scale to max 8px shift
     const x = ((e.clientX - rect.left) / rect.width - 0.5) * 16;
@@ -76,10 +82,7 @@ const UniformMemberCard: React.FC<{ member: MakerMember; index: number }> = ({ m
   };
 
   return (
-    <motion.a
-      href={member.linkedin}
-      target="_blank"
-      rel="noopener noreferrer"
+    <motion.div
       onMouseEnter={() => setIsHovered(true)}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
@@ -95,7 +98,7 @@ const UniformMemberCard: React.FC<{ member: MakerMember; index: number }> = ({ m
           ? '0 20px 40px -15px rgba(0, 0, 0, 0.65)'
           : '0 4px 12px -2px rgba(0, 0, 0, 0.2)',
       }}
-      className="group relative flex flex-col justify-end overflow-hidden rounded-2xl bg-[#090d16] light:bg-[#ffffff] border border-white/[0.08] light:border-black/[0.1] hover:border-white/25 light:hover:border-black/25 transition-all duration-550 ease-[cubic-bezier(0.22,1,0.36,1)] cursor-pointer select-none"
+      className="group relative flex flex-col justify-end overflow-hidden rounded-2xl bg-[#090d16] light:bg-[#ffffff] border border-white/[0.08] light:border-black/[0.1] hover:border-white/25 light:hover:border-black/25 transition-all duration-550 ease-[cubic-bezier(0.22,1,0.36,1)] select-none"
     >
       {/* 4:5 Uniform Portrait Frame */}
       <div className="relative w-full aspect-[4/5] overflow-hidden bg-[#060911] light:bg-[#F5F4F0]">
@@ -126,11 +129,11 @@ const UniformMemberCard: React.FC<{ member: MakerMember; index: number }> = ({ m
         {/* Subtle Dark Cinematic Gradient (Transparent at Top -> Darker at Bottom) */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent opacity-80 group-hover:opacity-95 transition-opacity duration-550 ease-[cubic-bezier(0.22,1,0.36,1)] pointer-events-none z-0" />
 
-        {/* Minimal Bottom Bar: Name + Rotating Arrow Icon */}
-        <div className="absolute inset-x-0 bottom-0 p-6 sm:p-7 flex items-end justify-between z-20">
+        {/* Minimal Bottom Bar: Name + Social Links (LinkedIn & GitHub) */}
+        <div className="absolute inset-x-0 bottom-0 p-5 sm:p-6 flex items-end justify-between z-20">
           <motion.h3
             animate={{
-              y: isHovered ? -6 : 0,
+              y: isHovered ? -4 : 0,
             }}
             transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
             className="text-2xl sm:text-3xl font-semibold tracking-tight text-white font-sans transition-colors duration-300"
@@ -138,20 +141,47 @@ const UniformMemberCard: React.FC<{ member: MakerMember; index: number }> = ({ m
             {member.name}
           </motion.h3>
 
-          <motion.div
-            animate={{
-              opacity: isHovered ? 1 : 0.65,
-              x: isHovered ? 4 : 0,
-              rotate: isHovered ? 8 : 0,
-            }}
-            transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-            className="p-2.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white shadow-md"
-          >
-            <ArrowUpRight className="w-4 h-4 stroke-[2]" />
-          </motion.div>
+          {/* Social Icons Container */}
+          <div className="flex items-center gap-2">
+            {/* GitHub Icon */}
+            {member.github && (
+              <a
+                href={member.github}
+                target="_blank"
+                rel="noopener noreferrer"
+                title={`${member.name}'s GitHub`}
+                className="p-2.5 rounded-full bg-white/10 hover:bg-white/25 active:scale-95 backdrop-blur-md border border-white/20 text-white shadow-md transition-all duration-300 cursor-pointer flex items-center justify-center group/icon"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <svg
+                  className="w-4 h-4 fill-current transition-transform duration-300 group-hover/icon:scale-110"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
+                </svg>
+              </a>
+            )}
+
+            {/* LinkedIn Icon */}
+            <a
+              href={member.linkedin}
+              target="_blank"
+              rel="noopener noreferrer"
+              title={`${member.name}'s LinkedIn`}
+              className="p-2.5 rounded-full bg-white/10 hover:bg-white/25 active:scale-95 backdrop-blur-md border border-white/20 text-white shadow-md transition-all duration-300 cursor-pointer flex items-center justify-center group/icon"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <svg
+                className="w-4 h-4 fill-current transition-transform duration-300 group-hover/icon:scale-110"
+                viewBox="0 0 24 24"
+              >
+                <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
+              </svg>
+            </a>
+          </div>
         </div>
       </div>
-    </motion.a>
+    </motion.div>
   );
 };
 
