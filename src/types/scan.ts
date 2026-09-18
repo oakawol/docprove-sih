@@ -167,4 +167,31 @@ export interface ScanResult {
   final_status: string;
   artifacts: ArtifactPaths;
   timings_ms: TimingsData;
+  document_valid?: true;
+  document_type?: string;
+  eligibility?: Record<string, unknown>;
+  cooldown_active?: boolean;
+  cooldown_remaining_seconds?: number;
+  cooldown_until?: number | null;
+  consecutive_suspicious?: number;
+}
+
+export interface DocumentRejectedResult {
+  scan_id: string;
+  document_valid: false;
+  document_type: 'unknown';
+  rejection_reason: string;
+  message: string;
+  eligibility: Record<string, unknown>;
+  ocr: OcrData;
+  extracted: Record<string, string>;
+  artifacts: ArtifactPaths;
+  cooldown_active?: false;
+}
+
+export interface CooldownResponse {
+  cooldown_active: true;
+  cooldown_remaining_seconds: number;
+  cooldown_until: number | null;
+  message: string;
 }

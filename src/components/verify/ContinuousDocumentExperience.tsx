@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import {
   FileUp,
   ArrowRight,
@@ -19,7 +19,10 @@ export const ContinuousDocumentExperience: React.FC = () => {
     state,
     selectedFile,
     scanResult,
+    documentRejection,
     error,
+    cooldownActive,
+    cooldownRemainingSeconds,
     activeStageIndex,
     handleFileSelect,
     clearFile,
@@ -69,12 +72,14 @@ export const ContinuousDocumentExperience: React.FC = () => {
   };
 
   const isProcessing = state === 'scanning' || state === 'ocrComplete' || state === 'validationComplete' || state === 'tamperingComplete' || state === 'faceComplete';
-  const isComplete = state === 'verified' || state === 'failed';
+  const isComplete = state === 'verified' || state === 'failed' || state === 'invalid';
   const isVerified = state === 'verified' && !!scanResult;
 
   // Determine intake display state
   const getIntakeState = () => {
     if (!selectedFile) return 'IDLE';
+    if (cooldownActive || state === 'cooldown') return 'COOLDOWN';
+    if (state === 'invalid') return 'INVALID';
     if (isProcessing) return 'ANALYZING';
     if (isComplete) return 'COMPLETE';
     return 'READY';
@@ -122,7 +127,7 @@ export const ContinuousDocumentExperience: React.FC = () => {
   const [hoveredSignal, setHoveredSignal] = useState<string | null>(null);
 
   return (
-    <div className="w-full pt-28 sm:pt-32 lg:pt-36 pb-8 sm:pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-20">
+    <div className="w-full min-w-0 flex flex-col pt-28 sm:pt-32 lg:pt-36 pb-8 sm:pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-14 sm:space-y-20">
       {/* ──────────────────────────────────────────────────────────── */}
       {/* 1. HERO: CINEMATIC SEQUENCED ENTRANCE & HEADLINE DEPTH */}
       {/* ──────────────────────────────────────────────────────────── */}
@@ -140,7 +145,7 @@ export const ContinuousDocumentExperience: React.FC = () => {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
-              className="text-4xl sm:text-6xl md:text-7xl font-semibold tracking-[-0.048em] leading-[1.02] text-[#f8fafc] light:text-[#111318] inline-flex items-center justify-center flex-wrap"
+              className="text-[clamp(2rem,9vw,4.5rem)] sm:text-6xl md:text-7xl font-semibold tracking-[-0.048em] leading-[1.02] text-[#f8fafc] light:text-[#111318] inline-flex items-center justify-center flex-wrap max-w-full"
             >
               <span>Verify your&nbsp;</span>
               <span className="inline-block text-left min-w-[4.8ch] sm:min-w-[5.2ch] relative text-[#E03131]">
@@ -166,7 +171,7 @@ export const ContinuousDocumentExperience: React.FC = () => {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.55, ease: [0.22, 1, 0.36, 1] }}
-          className="flex flex-col sm:flex-row items-center gap-4 mb-16"
+          className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 mb-12 sm:mb-16 w-full sm:w-auto"
         >
           {/* Primary CTA: START EXAMINATION */}
           <button
@@ -174,7 +179,7 @@ export const ContinuousDocumentExperience: React.FC = () => {
               const el = document.getElementById('document-intake');
               if (el) el.scrollIntoView({ behavior: 'smooth' });
             }}
-            className="group relative overflow-hidden w-full sm:w-auto px-8 py-3.5 rounded-full bg-[#f5f5f7] light:bg-[#111318] text-[#07090e] light:text-[#ffffff] font-semibold text-xs tracking-[0.14em] uppercase flex items-center justify-center gap-3 transition-all duration-300 cursor-pointer shadow-[0_12px_30px_-8px_rgba(0,0,0,0.25)] active:scale-[0.98] active:translate-y-0 rainbow-hover-target"
+            className="group relative overflow-hidden w-full sm:w-auto min-h-11 px-8 py-3.5 rounded-full bg-[#f5f5f7] light:bg-[#111318] text-[#07090e] light:text-[#ffffff] font-semibold text-xs tracking-[0.14em] uppercase flex items-center justify-center gap-3 transition-all duration-300 cursor-pointer shadow-[0_12px_30px_-8px_rgba(0,0,0,0.25)] active:scale-[0.98] active:translate-y-0 rainbow-hover-target"
           >
             <div className="absolute inset-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/80 light:via-white/20 to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity animate-shimmer" />
             <span className="relative z-10 font-sans">START EXAMINATION</span>
@@ -192,7 +197,7 @@ export const ContinuousDocumentExperience: React.FC = () => {
           <MasterPassportDocument mode="optical" tiltEffect={true} />
 
           {/* Minimal Precision Sub-Telemetry */}
-          <div className="mt-6 flex items-center justify-between text-[10px] font-mono text-[#565f73] light:text-[#555B66] max-w-md mx-auto">
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[9px] sm:text-[10px] font-mono text-[#565f73] light:text-[#555B66] max-w-md mx-auto">
             <span>SPECIMEN ID: ERD-9209198</span>
             <span>FORMAT: ICAO DOC 9303 ID-3</span>
             <span className="text-[#8e95a5] light:text-[#111318]">RESOLUTION: 600 DPI</span>
@@ -203,13 +208,15 @@ export const ContinuousDocumentExperience: React.FC = () => {
       {/* ──────────────────────────────────────────────────────────── */}
       {/* 2. VERIFICATION PIPELINE: STACKED CARD SCROLL                */}
       {/* ──────────────────────────────────────────────────────────── */}
-      <PipelineStackScroll />
+      <div className="order-3 lg:order-2 min-w-0">
+        <PipelineStackScroll />
+      </div>
 
       {/* ──────────────────────────────────────────────────────────── */}
       {/* 3. DOCUMENT INTAKE WORKSPACE: REAL UPLOAD EXPERIENCE       */}
       {/* ──────────────────────────────────────────────────────────── */}
-      <section id="document-intake" className="pt-16 border-t border-white/[0.06] light:border-black/[0.08]">
-        <div className="mb-10 text-left">
+      <section id="document-intake" className="order-2 lg:order-3 pt-12 sm:pt-16 border-t border-white/[0.06] light:border-black/[0.08] min-w-0">
+        <div className="mb-8 sm:mb-10 text-left">
           <span className="text-xs font-mono tracking-widest text-[#8e95a5] light:text-[#555B66] uppercase block mb-2">
             [ 02 / DOCUMENT INTAKE WORKSPACE ]
           </span>
@@ -221,7 +228,7 @@ export const ContinuousDocumentExperience: React.FC = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-8 items-stretch min-w-0">
           {/* Left Column: Intake Drag & Drop Box */}
           <div className="lg:col-span-7 flex flex-col">
             {/* Hidden file input */}
@@ -240,7 +247,7 @@ export const ContinuousDocumentExperience: React.FC = () => {
               }}
               onDragLeave={() => setIsDragOver(false)}
               onDrop={handleDrop}
-              className={`rounded-3xl p-8 sm:p-10 flex-1 flex flex-col justify-between text-center relative overflow-hidden transition-all duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+              className={`min-w-0 rounded-2xl sm:rounded-3xl p-5 sm:p-10 flex-1 flex flex-col justify-between text-center relative overflow-hidden transition-all duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] ${
                 scanResult && state === 'verified'
                   ? scanResult.risk.status === 'CLEAR'
                     ? '!bg-[#087F5B] text-white border border-[#087F5B] shadow-[0_24px_50px_-12px_rgba(8,127,91,0.4)]'
@@ -252,7 +259,47 @@ export const ContinuousDocumentExperience: React.FC = () => {
                   : 'surface-card animate-breathing-border'
               }`}
             >
-              {intakeState === 'IDLE' ? (
+              {intakeState === 'COOLDOWN' ? (
+                <div className="flex flex-col items-center justify-center text-center py-10 sm:py-14 min-h-[280px]">
+                  <span className="text-[10px] font-mono tracking-[0.2em] text-blue-400 light:text-blue-600 uppercase mb-4">
+                    VERIFICATION PAUSED
+                  </span>
+                  <h3 className="text-xl sm:text-2xl font-semibold text-white light:text-[#111318] tracking-tight">
+                    Verification temporarily unavailable.
+                  </h3>
+                  <p className="text-xs sm:text-sm text-[#8e95a5] light:text-[#555B66] max-w-sm mt-3 leading-relaxed">
+                    Multiple suspicious documents were detected in consecutive attempts.
+                  </p>
+                  <div className="mt-7 text-4xl sm:text-5xl font-mono tabular-nums font-medium text-white light:text-[#111318] tracking-tight">
+                    {String(Math.floor(cooldownRemainingSeconds / 60)).padStart(2, '0')}:{String(cooldownRemainingSeconds % 60).padStart(2, '0')}
+                  </div>
+                  <p className="text-[11px] font-mono text-[#8e95a5] light:text-[#737781] mt-3">
+                    Verification will automatically become available again.
+                  </p>
+                </div>
+              ) : intakeState === 'INVALID' ? (
+                <div className="flex flex-col items-center justify-center text-center py-10 sm:py-14 min-h-[280px]">
+                  <span className="text-[10px] font-mono tracking-[0.2em] text-amber-400 light:text-amber-700 uppercase mb-4">
+                    INPUT VALIDATION
+                  </span>
+                  <h3 className="text-xl sm:text-2xl font-semibold text-white light:text-[#111318] tracking-tight">
+                    DOCUMENT NOT RECOGNIZED
+                  </h3>
+                  <p className="text-xs sm:text-sm text-[#8e95a5] light:text-[#555B66] max-w-sm mt-3 leading-relaxed">
+                    Please upload a valid passport or visa document.
+                  </p>
+                  <p className="text-[11px] text-[#8e95a5] light:text-[#737781] max-w-sm mt-2 leading-relaxed">
+                    {documentRejection?.message || 'The uploaded image does not contain enough recognizable document information to begin verification.'}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={resetVerification}
+                    className="mt-7 min-h-11 px-6 rounded-full bg-white light:bg-[#111318] text-slate-950 light:text-white font-semibold text-[11px] tracking-[0.12em] uppercase cursor-pointer"
+                  >
+                    TRY ANOTHER DOCUMENT
+                  </button>
+                </div>
+              ) : intakeState === 'IDLE' ? (
                 <div
                   className="flex flex-col items-center justify-center my-auto py-8 cursor-pointer"
                   onClick={handleBrowseClick}
@@ -284,14 +331,14 @@ export const ContinuousDocumentExperience: React.FC = () => {
                   )}
                 </div>
               ) : (
-                <div className="flex flex-col justify-between h-full py-4 text-left">
+                <div className="flex flex-col justify-between h-full py-2 sm:py-4 text-left min-w-0">
                   {/* File Header */}
-                  <div className={`flex items-center justify-between pb-6 border-b transition-colors duration-1000 ${
+                  <div className={`flex flex-wrap items-center justify-between gap-3 pb-5 sm:pb-6 border-b transition-colors duration-1000 ${
                     isVerified
                       ? 'border-white/20'
                       : 'border-white/[0.08] light:border-black/[0.08]'
                   }`}>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors duration-1000 ${
                         isVerified
                           ? 'bg-white/15 text-white border border-white/20'
@@ -311,7 +358,7 @@ export const ContinuousDocumentExperience: React.FC = () => {
                         }`}>
                           DOCUMENT LOADED
                         </span>
-                        <p className={`text-sm font-bold tracking-wide truncate max-w-xs sm:max-w-md transition-colors duration-1000 ${
+                        <p className={`text-sm font-bold tracking-wide truncate max-w-[min(14rem,60vw)] sm:max-w-md transition-colors duration-1000 ${
                           isVerified
                             ? 'text-white'
                             : 'text-white light:text-[#111318]'
@@ -324,7 +371,7 @@ export const ContinuousDocumentExperience: React.FC = () => {
                     {!isProcessing && (
                       <button
                         onClick={isComplete ? resetVerification : clearFile}
-                        className={`text-xs font-mono transition-colors cursor-pointer flex items-center gap-1 ${
+                        className={`min-h-11 px-2 text-xs font-mono transition-colors cursor-pointer flex items-center gap-1 ${
                           isVerified
                             ? 'text-white/80 hover:text-white'
                             : 'text-[#565f73] light:text-[#737781] hover:text-white light:hover:text-[#111318]'
@@ -339,27 +386,27 @@ export const ContinuousDocumentExperience: React.FC = () => {
                   {/* File Details & Preview */}
                   <div className="my-6 space-y-4">
                     {/* File metadata */}
-                    <div className={`p-4 rounded-xl text-xs font-mono space-y-2 transition-all duration-1000 ${
+                      <div className={`p-4 rounded-xl text-xs font-mono space-y-2 transition-all duration-1000 min-w-0 ${
                       isVerified
                         ? 'bg-white/10 border border-white/15 text-white'
                         : 'bg-white/[0.02] light:bg-[#F7F7F4] border border-white/[0.06] light:border-[#D6D5D0]'
                     }`}>
-                      <div className="flex justify-between">
+                      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 break-words">
                         <span className={isVerified ? 'text-white/70' : 'text-slate-400 light:text-[#555B66]'}>FILE NAME</span>
                         <span className={`font-bold truncate max-w-[200px] ${isVerified ? 'text-white' : 'text-white light:text-[#111318]'}`}>{selectedFile?.name}</span>
                       </div>
-                      <div className="flex justify-between">
+                      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 break-words">
                         <span className={isVerified ? 'text-white/70' : 'text-slate-400 light:text-[#555B66]'}>FILE SIZE</span>
                         <span className={`font-bold ${isVerified ? 'text-white' : 'text-white light:text-[#111318]'}`}>{selectedFile?.sizeFormatted}</span>
                       </div>
-                      <div className="flex justify-between">
+                      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 break-words">
                         <span className={isVerified ? 'text-white/70' : 'text-slate-400 light:text-[#555B66]'}>FILE TYPE</span>
                         <span className={`font-bold uppercase ${isVerified ? 'text-white' : 'text-white light:text-[#111318]'}`}>
                           {selectedFile?.name.split('.').pop()?.toUpperCase() || 'UNKNOWN'}
                         </span>
                       </div>
                       {scanResult && (
-                        <div className={`flex justify-between pt-2 border-t ${isVerified ? 'border-white/15 text-white' : 'text-slate-400 light:text-[#555B66] border-white/[0.06] light:border-[#D6D5D0]'}`}>
+                        <div className={`flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 pt-2 border-t break-words ${isVerified ? 'border-white/15 text-white' : 'text-slate-400 light:text-[#555B66] border-white/[0.06] light:border-[#D6D5D0]'}`}>
                           <span className={isVerified ? 'text-white/70' : 'text-slate-400 light:text-[#555B66]'}>SCAN ID</span>
                           <span className={`font-bold ${isVerified ? 'text-white' : 'text-emerald-400 light:text-emerald-600'}`}>{scanResult.scan_id}</span>
                         </div>
@@ -368,7 +415,7 @@ export const ContinuousDocumentExperience: React.FC = () => {
 
                     {/* Image preview with forensic scanning treatment */}
                     {selectedFile?.previewUrl && (
-                      <div className={`rounded-xl overflow-hidden relative transition-all duration-1000 ${
+                      <div className={`w-full rounded-xl overflow-hidden relative transition-all duration-1000 ${
                         isVerified
                           ? 'border border-white/20 bg-black/10'
                           : 'border border-white/[0.06] light:border-[#D6D5D0] bg-black/20 light:bg-[#F7F7F4]'
@@ -376,7 +423,7 @@ export const ContinuousDocumentExperience: React.FC = () => {
                         <img
                           src={selectedFile.previewUrl}
                           alt="Document preview"
-                          className="w-full h-auto max-h-[200px] object-contain"
+                          className="block w-full h-auto max-h-[200px] object-contain"
                         />
 
                         {/* Forensic Scanning Overlays — only during processing */}
@@ -442,8 +489,8 @@ export const ContinuousDocumentExperience: React.FC = () => {
 
                     {/* Success summary — seamlessly belongs to the outer card surface */}
                     {scanResult && state === 'verified' && (
-                      <div className="pt-3 pb-2 px-1 text-white">
-                        <div className="flex items-end justify-between gap-6">
+                      <div className="pt-3 pb-2 px-1 text-white min-w-0">
+                        <div className="flex flex-wrap items-end justify-between gap-3 sm:gap-6">
                           <div className="min-w-0">
                             <span className="text-[10px] font-mono tracking-[0.18em] uppercase block mb-1.5 font-medium text-white/80">
                               SCREENING RESULT
@@ -456,7 +503,7 @@ export const ContinuousDocumentExperience: React.FC = () => {
                                 : 'High risk detected'}
                             </span>
                           </div>
-                          <span className="shrink-0 text-base sm:text-lg font-mono font-bold tracking-tight text-white">
+                          <span className="shrink-0 text-sm sm:text-lg font-mono font-bold tracking-tight text-white">
                             {scanResult.risk.score} / 100
                           </span>
                         </div>
@@ -505,7 +552,7 @@ export const ContinuousDocumentExperience: React.FC = () => {
                       </button>
                     )}
 
-                    {isComplete && (
+                    {isComplete && state === 'verified' && (
                       <div className="flex gap-3">
                         <button
                           onClick={() => {
@@ -548,19 +595,19 @@ export const ContinuousDocumentExperience: React.FC = () => {
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
             className="lg:col-span-5 flex flex-col surface-card light:!bg-[#F7F6F2] light:!border-[rgba(20,30,45,0.10)] light:!shadow-[0_12px_40px_rgba(20,30,45,0.06)] rounded-[24px] p-6 sm:p-8 lg:p-9 border border-white/[0.08] relative overflow-hidden"
           >
-            {/* Extremely subtle bespoke watermark detail (barely visible 0.035 opacity crosshair / index in light mode) */}
+            {/* Extremely subtle bespoke watermark detail */}
             <div className="absolute right-4 bottom-4 pointer-events-none select-none opacity-[0.03] light:opacity-[0.035] text-[#111318] dark:text-white font-mono text-7xl font-bold tracking-tighter leading-none">
-              04
+              06
             </div>
 
             {/* Header Area */}
-            <div className="pb-5 border-b border-white/[0.06] light:border-[rgba(20,30,45,0.07)]">
+            <div className="pb-4 border-b border-white/[0.06] light:border-[rgba(20,30,45,0.07)]">
               <motion.span
                 initial={{ opacity: 0, y: 6 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-                className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#8e95a5] light:text-[#555B66] block mb-2 font-medium"
+                className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#8e95a5] light:text-[#555B66] block mb-1.5 font-medium"
               >
                 [ VERIFICATION SIGNALS ]
               </motion.span>
@@ -576,45 +623,60 @@ export const ContinuousDocumentExperience: React.FC = () => {
               </motion.h3>
             </div>
 
-            {/* Signal Cards: balanced vertical rhythm filling the module with comfortable breathing room */}
-            <div className="pt-5 flex flex-col justify-between flex-1 gap-3.5 sm:gap-4 relative z-10">
+            {/* Signal Cards: 6 stages synchronized with real backend verification state */}
+            <div className="pt-4 flex flex-col justify-between flex-1 gap-2.5 sm:gap-3 relative z-10">
               {[
                 {
-                  id: 'ocr',
+                  id: 'document-check',
                   index: '01',
-                  title: 'OCR EXTRACTION',
-                  desc: 'Extracts full name, document numbers, nationality, birth dates, and expiration dates.',
-                  // maps to pipeline stages: active if activeStageIndex === 1 (Text Reading)
+                  title: 'DOCUMENT CHECK',
+                  desc: 'Inspecting document structure and basic document integrity.',
+                  stageIndex: 0,
+                },
+                {
+                  id: 'text-reading',
+                  index: '02',
+                  title: 'TEXT READING',
+                  desc: 'Extracting document text, identity fields, dates, passport number, and MRZ data.',
                   stageIndex: 1,
                 },
                 {
-                  id: 'validation',
-                  index: '02',
-                  title: 'DOCUMENT VALIDATION',
-                  desc: 'Validates document structure, MRZ check digits, and cross-references printed data.',
-                  // maps to pipeline stages: active if activeStageIndex === 0 or 2 (Document Check / Detail Check)
+                  id: 'detail-check',
+                  index: '03',
+                  title: 'DETAIL CHECK',
+                  desc: 'Cross-checking extracted details against the document and validating consistency.',
                   stageIndex: 2,
                 },
                 {
-                  id: 'tampering',
-                  index: '03',
-                  title: 'TAMPERING ANALYSIS',
-                  desc: 'ELA, noise analysis, chroma residuals, and re-compression detection across document fields.',
-                  // maps to pipeline stages: active if activeStageIndex === 3 (Tampering Check)
+                  id: 'tampering-check',
+                  index: '04',
+                  title: 'TAMPERING CHECK',
+                  desc: 'Analyzing the document for visual manipulation, ELA anomalies, noise, compression, and other tampering signals.',
                   stageIndex: 3,
                 },
                 {
-                  id: 'face',
-                  index: '04',
-                  title: 'FACE DETECTION',
-                  desc: 'Extracts facial landmarks and validates portrait integrity against photo swaps.',
-                  // maps to pipeline stages: active if activeStageIndex === 4 (Face Match)
+                  id: 'face-match',
+                  index: '05',
+                  title: 'FACE MATCH',
+                  desc: 'Checking portrait integrity and performing face verification when a selfie is provided.',
                   stageIndex: 4,
+                },
+                {
+                  id: 'verified-result',
+                  index: '06',
+                  title: 'VERIFIED RESULT',
+                  desc: 'Combining the verification signals and presenting the final screening result and risk assessment.',
+                  stageIndex: 5,
                 },
               ].map((item, idx) => {
                 const isHovered = hoveredSignal === item.id;
-                const isActive = isProcessing && activeStageIndex === item.stageIndex;
-                const isResolved = isProcessing && activeStageIndex > item.stageIndex;
+                // Active calculation: exactly ONE card active at a time during scanning, or card 06 on verified completion
+                const isActive =
+                  (isProcessing && activeStageIndex === item.stageIndex) ||
+                  (isVerified && item.stageIndex === 5);
+                const isResolved =
+                  (isProcessing && activeStageIndex > item.stageIndex) ||
+                  (isVerified && item.stageIndex < 5);
 
                 return (
                   <motion.div
@@ -624,65 +686,85 @@ export const ContinuousDocumentExperience: React.FC = () => {
                     viewport={{ once: true }}
                     transition={{
                       duration: 0.5,
-                      delay: 0.08 + idx * 0.06,
+                      delay: 0.05 + idx * 0.04,
                       ease: [0.22, 1, 0.36, 1],
                     }}
                     onMouseEnter={() => setHoveredSignal(item.id)}
                     onMouseLeave={() => setHoveredSignal(null)}
                     style={{
-                      transform: isHovered ? 'translateY(-2px)' : 'translateY(0px)',
-                      transition: 'transform 350ms cubic-bezier(0.22, 1, 0.36, 1), background-color 350ms cubic-bezier(0.22, 1, 0.36, 1), border-color 350ms cubic-bezier(0.22, 1, 0.36, 1)',
+                      transform: isActive
+                        ? 'translateY(-2px)'
+                        : isHovered
+                        ? 'translateY(-2px)'
+                        : 'translateY(0px)',
+                      transition:
+                        'transform 550ms cubic-bezier(0.22, 1, 0.36, 1), background-color 550ms cubic-bezier(0.22, 1, 0.36, 1), border-color 550ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 550ms cubic-bezier(0.22, 1, 0.36, 1)',
                     }}
-                    className={`p-5 sm:p-[21px] rounded-[16px] relative cursor-default transition-all ${
-                      // Light mode styling
-                      isHovered
+                    className={`p-3.5 sm:p-4 rounded-[14px] relative cursor-default transition-all ${
+                      isActive
+                        ? 'light:!bg-[#F0F5FA] light:!border-[#3B82F6]/50 light:!shadow-[0_8px_24px_rgba(59,130,246,0.10)] bg-[#12182a] border-blue-400/60 shadow-[0_8px_24px_rgba(59,130,246,0.15)]'
+                        : isHovered
                         ? 'light:!bg-white light:!border-[rgba(20,30,45,0.18)] bg-white/[0.05] border-white/[0.14]'
-                        : isActive
-                        ? 'light:!bg-white/80 light:!border-blue-500/40 bg-white/[0.04] border-blue-400/40'
                         : isResolved
-                        ? 'light:!bg-[rgba(255,255,255,0.7)] light:!border-[rgba(20,30,45,0.12)] bg-white/[0.03] border-white/[0.09]'
-                        : 'light:!bg-[rgba(255,255,255,0.55)] light:!border-[rgba(20,30,45,0.08)] bg-white/[0.02] border-white/[0.06]'
+                        ? 'light:!bg-[rgba(255,255,255,0.72)] light:!border-[rgba(20,30,45,0.12)] bg-white/[0.03] border-white/[0.09]'
+                        : 'light:!bg-[rgba(255,255,255,0.52)] light:!border-[rgba(20,30,45,0.08)] bg-white/[0.02] border-white/[0.06]'
                     } border`}
                   >
                     {/* Active stage left hairline accent indicator */}
                     {isActive && (
-                      <div className="absolute left-0 top-3 bottom-3 w-[2px] rounded-r-full bg-blue-500 dark:bg-blue-400" />
+                      <div className="absolute left-0 top-2.5 bottom-2.5 w-[2.5px] rounded-r-full bg-blue-600 dark:bg-blue-400" />
                     )}
 
                     {/* Top Index & Title row */}
-                    <div className="flex items-center gap-2.5 mb-2">
+                    <div className="flex items-center gap-2 mb-1.5">
                       <span
                         style={{
-                          transform: isHovered ? 'translateX(2px)' : 'translateX(0px)',
-                          transition: 'transform 350ms cubic-bezier(0.22, 1, 0.36, 1), color 350ms cubic-bezier(0.22, 1, 0.36, 1)',
+                          transform: isHovered || isActive ? 'translateX(2px)' : 'translateX(0px)',
+                          transition: 'transform 550ms cubic-bezier(0.22, 1, 0.36, 1), color 550ms cubic-bezier(0.22, 1, 0.36, 1)',
                         }}
-                        className={`font-mono text-[11px] tracking-tight font-medium ${
+                        className={`font-mono text-[11px] tracking-tight ${
                           isActive
-                            ? 'text-blue-600 dark:text-blue-400 font-semibold'
-                            : 'text-[#8e95a5] light:text-[#737781]'
+                            ? '!text-blue-600 dark:!text-blue-400 font-bold'
+                            : 'text-[#555B66] light:text-[#555B66] dark:text-[#8e95a5] font-medium'
                         }`}
                       >
                         {item.index}
                       </span>
 
-                      {/* Tiny active stage dot next to index if running */}
+                      {/* Tiny active stage indicator with restrained pulse */}
                       {isActive && (
-                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500 dark:bg-blue-400 animate-pulse" />
+                        <span className="relative flex h-1.5 w-1.5">
+                          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-blue-600 dark:bg-blue-400" />
+                          <span className="absolute inline-flex h-full w-full rounded-full bg-blue-500 opacity-60 animate-ping" />
+                        </span>
                       )}
 
                       <h4
                         style={{
-                          transform: isHovered ? 'translateX(2px)' : 'translateX(0px)',
-                          transition: 'transform 350ms cubic-bezier(0.22, 1, 0.36, 1)',
+                          transform: isHovered || isActive ? 'translateX(2px)' : 'translateX(0px)',
+                          transition: 'transform 550ms cubic-bezier(0.22, 1, 0.36, 1)',
                         }}
-                        className="font-mono text-[12.5px] font-semibold text-white light:text-[#111318] uppercase tracking-[0.04em]"
+                        className={`font-mono text-[12px] uppercase tracking-[0.04em] transition-colors ${
+                          isActive
+                            ? '!text-[#0A1128] dark:!text-white font-bold'
+                            : '!text-[#1E2530] dark:!text-[#f5f5f7] font-semibold'
+                        }`}
                       >
                         {item.title}
                       </h4>
                     </div>
 
                     {/* Description */}
-                    <p className="font-sans text-[13px] sm:text-[13.5px] leading-[1.55] text-[#8e95a5] light:text-[#4B525D]">
+                    <p
+                      style={{
+                        transition: 'color 550ms cubic-bezier(0.22, 1, 0.36, 1)',
+                      }}
+                      className={`font-sans text-[12px] sm:text-[12.5px] leading-[1.5] transition-colors ${
+                        isActive
+                          ? '!text-[#1E293B] dark:!text-[#e2e8f0] font-medium'
+                          : '!text-[#475569] dark:!text-[#94a3b8]'
+                      }`}
+                    >
                       {item.desc}
                     </p>
                   </motion.div>

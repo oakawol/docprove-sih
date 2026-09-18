@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Lenis from 'lenis';
 import { DocproveVerificationProvider } from './context/DocproveVerificationContext';
 import { DocproveNavbar, type ActivePage } from './components/layout/DocproveNavbar';
-import { DocproveFooter } from './components/layout/DocproveFooter';
 import { VerifyPage } from './components/verify/VerifyPage';
 import { MakersPage } from './components/makers/MakersPage';
 import { CinematicBackground } from './components/background/CinematicBackground';
@@ -59,7 +58,7 @@ const AppContent: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[var(--bg-dark)] text-[var(--text-primary)] transition-colors duration-500 selection:bg-white/20 selection:text-white relative overflow-x-hidden font-sans">
+    <div className="min-h-screen flex flex-col bg-[var(--bg-dark)] text-[var(--text-primary)] transition-colors duration-500 relative overflow-x-hidden font-sans">
       {/* Cinematic Logo Intro Overlay */}
       <CinematicOpeningIntro />
 
@@ -98,9 +97,6 @@ const AppContent: React.FC = () => {
           )}
         </AnimatePresence>
       </main>
-
-      {/* Minimal Footer for non-verify pages */}
-      {activePage !== 'verify' && <DocproveFooter onSelectPage={handleSelectPage} />}
     </div>
   );
 };

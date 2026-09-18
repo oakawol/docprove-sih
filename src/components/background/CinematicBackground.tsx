@@ -184,7 +184,7 @@ export const CinematicBackground: React.FC = () => {
 
           {/* Dark Ambient Lighting */}
           <div
-            className="absolute -top-40 left-1/2 -translate-x-1/2 w-[1000px] h-[550px] pointer-events-none opacity-60"
+            className="absolute -top-40 left-1/2 -translate-x-1/2 w-[min(1000px,100vw)] h-[min(550px,70vh)] pointer-events-none opacity-60"
             style={{
               background: 'radial-gradient(circle, rgba(30, 58, 138, 0.08) 0%, rgba(7, 9, 14, 0) 70%)',
               filter: 'blur(100px)',
@@ -212,7 +212,7 @@ export const CinematicBackground: React.FC = () => {
 
         {/* ── GUARANTEED HTML/SVG PARTICLE FIELD LAYER ── */}
         <div
-          className="fixed inset-0 pointer-events-none w-screen h-screen overflow-hidden z-[2]"
+          className="particle-field fixed inset-0 pointer-events-none w-full h-full overflow-hidden z-[2]"
           aria-hidden="true"
         >
           {particles.map((p) => {

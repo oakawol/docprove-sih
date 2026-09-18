@@ -6,21 +6,23 @@
  * backend URL.
  */
 
-import type { ScanResult } from '../types/scan';
+import type { CooldownResponse, DocumentRejectedResult, ScanResult } from '../types/scan';
 
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://backend-docprove.onrender.com';
 
 // ── Errors ──────────────────────────────────────────────────────────────────
 
 export class ApiError extends Error {
   statusCode: number;
   code: string;
+  details?: CooldownResponse;
 
-  constructor(message: string, statusCode = 500, code = 'INTERNAL_ERROR') {
+  constructor(message: string, statusCode = 500, code = 'INTERNAL_ERROR', details?: CooldownResponse) {
     super(message);
     this.name = 'ApiError';
     this.statusCode = statusCode;
     this.code = code;
+    this.details = details;
   }
 }
 
@@ -51,7 +53,16 @@ export function validateFile(file: File): string | null {
  * Submit a document for verification via POST /api/scan.
  * Returns the complete ScanResult from the backend pipeline.
  */
-export async function scanDocument(file: File): Promise<ScanResult> {
+function getSessionId(): string {
+  const storageKey = 'docprove_session_id';
+  const existing = sessionStorage.getItem(storageKey);
+  if (existing) return existing;
+  const id = crypto.randomUUID();
+  sessionStorage.setItem(storageKey, id);
+  return id;
+}
+
+export async function scanDocument(file: File, signal?: AbortSignal): Promise<ScanResult | DocumentRejectedResult> {
   const formData = new FormData();
   formData.append('document', file);
 
@@ -61,22 +72,39 @@ export async function scanDocument(file: File): Promise<ScanResult> {
     const response = await fetch(url, {
       method: 'POST',
       body: formData,
+      signal,
+      headers: { 'X-Docprove-Session': getSessionId() },
     });
 
     if (!response.ok) {
       let errorMessage = `Verification failed (HTTP ${response.status})`;
+      let errorBody: unknown;
       try {
-        const errorBody = await response.json();
-        if (errorBody.detail) {
-          errorMessage = typeof errorBody.detail === 'string'
-            ? errorBody.detail
-            : JSON.stringify(errorBody.detail);
+        errorBody = await response.json();
+        if (typeof errorBody === 'object' && errorBody && 'detail' in errorBody) {
+          const detail = (errorBody as { detail?: unknown }).detail;
+          if (detail) {
+            errorMessage = typeof detail === 'string' ? detail : JSON.stringify(detail);
+          }
         }
       } catch {
         // Could not parse error body
       }
 
-      if (response.status === 400) {
+      if (response.status === 429) {
+        const detail = typeof errorBody === 'object' && errorBody && 'detail' in errorBody
+          ? (errorBody as { detail?: unknown }).detail
+          : undefined;
+        const details = typeof detail === 'object' && detail
+          ? detail as CooldownResponse
+          : undefined;
+        throw new ApiError(
+          details?.message || errorMessage,
+          429,
+          'COOLDOWN_ACTIVE',
+          details,
+        );
+      } else if (response.status === 400) {
         throw new ApiError(errorMessage, 400, 'VALIDATION_ERROR');
       } else if (response.status === 404) {
         throw new ApiError('Verification service endpoint not found.', 404, 'NOT_FOUND');
@@ -91,7 +119,7 @@ export async function scanDocument(file: File): Promise<ScanResult> {
       }
     }
 
-    const result: ScanResult = await response.json();
+    const result: ScanResult | DocumentRejectedResult = await response.json();
     return result;
   } catch (err: unknown) {
     if (err instanceof ApiError) {

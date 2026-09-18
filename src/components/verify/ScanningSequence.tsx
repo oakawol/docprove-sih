@@ -118,7 +118,7 @@ export const ScanningSequence: React.FC = () => {
       </div>
 
       {/* ── 2. Fixed-Height Stage Viewport with Overlapping Cross-Fade ── */}
-      <div className="relative w-full h-[108px] overflow-hidden rounded-2xl bg-white/[0.025] light:bg-[#F7F7F4]/90 border border-white/[0.06] light:border-[#D6D5D0]/80 px-6 py-4 flex items-center justify-center">
+      <div className="relative w-full min-h-[108px] h-auto overflow-hidden rounded-2xl bg-white/[0.025] light:bg-[#F7F7F4]/90 border border-white/[0.06] light:border-[#D6D5D0]/80 px-4 sm:px-6 py-4 flex items-center justify-center">
         {/* Subtle Ambient Grain & Depth */}
         <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] via-transparent to-black/[0.02] pointer-events-none" />
 
@@ -213,7 +213,7 @@ export const ScanningSequence: React.FC = () => {
                 delay: 0.09,
                 ease: PREMIUM_EASE,
               }}
-              className="font-mono text-[11px] text-[#8e95a5] light:text-[#555B66] tracking-wide truncate max-w-[90%]"
+              className="font-mono text-[10px] sm:text-[11px] text-[#8e95a5] light:text-[#555B66] tracking-wide text-center break-words max-w-full"
             >
               {statusMessage || currentStage.description}
             </motion.p>
@@ -232,8 +232,8 @@ export const ScanningSequence: React.FC = () => {
           />
         </div>
 
-        <div className="flex items-center justify-between text-[9.5px] font-mono tracking-wider text-[#565f73] light:text-[#737781]">
-          <span>FORENSIC VERIFICATION ACTIVE</span>
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[9.5px] font-mono tracking-wider text-[#565f73] light:text-[#737781]">
+          <span className="min-w-0">FORENSIC VERIFICATION ACTIVE</span>
           <span className="tabular-nums">
             {Math.round(progressRatio * 100)}%
           </span>

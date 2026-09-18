@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowUpRight } from 'lucide-react';
 import nishiImage from '../../images/nishi.jpg';
+import makersBgImage from '../../images/makersbg.jpeg';
 
 interface MakerMember {
   id: string;
@@ -151,42 +152,59 @@ const UniformMemberCard: React.FC<{ member: MakerMember; index: number }> = ({ m
 
 export const MakersPage: React.FC = () => {
   return (
-    <div className="w-full pt-28 sm:pt-36 pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-20">
-      {/* ──────────────────────────────────────────────────────────── */}
-      {/* EDITORIAL INTRO */}
-      {/* ──────────────────────────────────────────────────────────── */}
-      <section className="text-left max-w-4xl">
-        <motion.span
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="text-xs font-mono tracking-[0.2em] text-[#565f73] light:text-[#737781] uppercase block mb-3"
-        >
-          [ 02 / THE MAKERS ]
-        </motion.span>
+    <div
+      className="relative w-full min-h-screen bg-[#07090e] light:bg-[#F5F4F0] bg-no-repeat bg-cover bg-center md:bg-center transition-colors duration-500 overflow-hidden"
+      style={{
+        backgroundImage: `url(${makersBgImage})`,
+        backgroundSize: 'cover',
+        backgroundRepeat: 'no-repeat',
+      }}
+    >
+      {/* Subtle legibility overlay to ensure team cards and typography remain crisp and readable above doodles */}
+      <div
+        className="absolute inset-0 pointer-events-none bg-[#07090e]/75 light:bg-[#F5F4F0]/65 transition-colors duration-500"
+        aria-hidden="true"
+      />
 
-        <motion.h1
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-          className="text-4xl sm:text-6xl md:text-7xl font-semibold tracking-[-0.045em] text-[#f5f5f7] light:text-[#111318] leading-[1.02] font-sans"
-        >
-          ENGINEERING &amp; <br />
-          DESIGN STUDIO
-        </motion.h1>
-      </section>
+      {/* Content Container */}
+      <div className="relative z-10 w-full pt-28 sm:pt-36 pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-20">
+        {/* ──────────────────────────────────────────────────────────── */}
+        {/* EDITORIAL INTRO */}
+        {/* ──────────────────────────────────────────────────────────── */}
+        <section className="text-left max-w-4xl">
+          <motion.span
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            className="text-xs font-mono tracking-[0.2em] text-[#565f73] light:text-[#737781] uppercase block mb-3 font-medium"
+          >
+            [ 02 / THE MAKERS ]
+          </motion.span>
 
-      {/* ──────────────────────────────────────────────────────────── */}
-      {/* PERFECT RESPONSIVE GRID: 3x2 DESKTOP, 2x3 TABLET, 1x6 MOBILE */}
-      {/* ──────────────────────────────────────────────────────────── */}
-      <section className="pt-8 border-t border-white/[0.06] light:border-black/[0.08]">
-        {/* Responsive Grid Layout */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-          {MAKERS.map((member, idx) => (
-            <UniformMemberCard key={member.id} member={member} index={idx} />
-          ))}
-        </div>
-      </section>
+          <motion.h1
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+            className="text-4xl sm:text-6xl md:text-7xl font-semibold tracking-[-0.045em] text-[#f5f5f7] light:text-[#111318] leading-[1.02] font-sans"
+          >
+            ENGINEERING &amp; <br />
+            DESIGN STUDIO
+          </motion.h1>
+        </section>
+
+        {/* ──────────────────────────────────────────────────────────── */}
+        {/* PERFECT RESPONSIVE GRID: 3x2 DESKTOP, 2x3 TABLET, 1x6 MOBILE */}
+        {/* ──────────────────────────────────────────────────────────── */}
+        <section className="pt-8 border-t border-white/[0.08] light:border-black/[0.08]">
+          {/* Responsive Grid Layout */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            {MAKERS.map((member, idx) => (
+              <UniformMemberCard key={member.id} member={member} index={idx} />
+            ))}
+          </div>
+        </section>
+      </div>
     </div>
   );
 };
+

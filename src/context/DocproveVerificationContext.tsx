@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useRef, useCallback } from 'react';
-import type { ScanResult } from '../types/scan';
-import { scanDocument, validateFile } from '../services/api';
+import type { DocumentRejectedResult, ScanResult } from '../types/scan';
+import { ApiError, scanDocument, validateFile } from '../services/api';
 
 // ── State Machine ───────────────────────────────────────────────────────────
 
@@ -13,6 +13,8 @@ export type VerificationState =
   | 'tamperingComplete'
   | 'faceComplete'
   | 'verified'
+  | 'invalid'
+  | 'cooldown'
   | 'failed';
 
 export type StageProgress = 'waiting' | 'processing' | 'completed';
@@ -40,7 +42,10 @@ interface VerificationContextType {
   selectedFile: SelectedFileMeta | null;
   uploadedFile: File | null;
   scanResult: ScanResult | null;
+  documentRejection: DocumentRejectedResult | null;
   error: string | null;
+  cooldownActive: boolean;
+  cooldownRemainingSeconds: number;
   activeStageIndex: number;
   currentStageName: string;
   handleFileSelect: (file: File) => void;
@@ -70,13 +75,17 @@ export const DocproveVerificationProvider: React.FC<{ children: React.ReactNode 
   const [selectedFile, setSelectedFile] = useState<SelectedFileMeta | null>(null);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
+  const [documentRejection, setDocumentRejection] = useState<DocumentRejectedResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeStageIndex, setActiveStageIndex] = useState(-1);
+  const [cooldownActive, setCooldownActive] = useState(false);
+  const [cooldownRemainingSeconds, setCooldownRemainingSeconds] = useState(0);
 
   const STAGE_NAMES = ['DOCUMENT CHECK', 'TEXT READING', 'DETAIL CHECK', 'TAMPERING CHECK', 'FACE MATCH', 'VERIFIED RESULT'];
   const currentStageName = activeStageIndex >= 0 && activeStageIndex < STAGE_NAMES.length ? STAGE_NAMES[activeStageIndex] : '';
 
   const abortControllerRef = useRef<boolean>(false);
+  const requestControllerRef = useRef<AbortController | null>(null);
 
   const formatFileSize = (bytes: number): string => {
     if (bytes < 1024) return `${bytes} B`;
@@ -105,6 +114,11 @@ export const DocproveVerificationProvider: React.FC<{ children: React.ReactNode 
     setState('idle');
     setPipelineStages(INITIAL_PIPELINE);
     setScanResult(null);
+    setDocumentRejection(null);
+    setCooldownActive(false);
+    setCooldownRemainingSeconds(0);
+    setCooldownActive(false);
+    setCooldownRemainingSeconds(0);
     setError(null);
     setStatusMessage('DOCUMENT READY FOR VERIFICATION');
   };
@@ -119,12 +133,15 @@ export const DocproveVerificationProvider: React.FC<{ children: React.ReactNode 
     setActiveStageIndex(-1);
     setPipelineStages(INITIAL_PIPELINE);
     setScanResult(null);
+    setDocumentRejection(null);
     setError(null);
     setStatusMessage('WAITING FOR DOCUMENT');
   };
 
   const cancelVerification = () => {
     abortControllerRef.current = true;
+    requestControllerRef.current?.abort();
+    requestControllerRef.current = null;
     setState('idle');
     setActiveStageIndex(-1);
     setPipelineStages(INITIAL_PIPELINE);
@@ -132,6 +149,22 @@ export const DocproveVerificationProvider: React.FC<{ children: React.ReactNode 
   };
 
   const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  React.useEffect(() => {
+    if (!cooldownActive) return;
+    const timer = window.setInterval(() => {
+      setCooldownRemainingSeconds((remaining) => {
+        if (remaining <= 1) {
+          setCooldownActive(false);
+          setState((current) => current === 'cooldown' || current === 'verified' ? 'idle' : current);
+          setStatusMessage('DOCUMENT READY FOR VERIFICATION');
+          return 0;
+        }
+        return remaining - 1;
+      });
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [cooldownActive]);
 
   // ── Start Verification (Real Backend Call) ──────────────────────────────
 
@@ -141,18 +174,54 @@ export const DocproveVerificationProvider: React.FC<{ children: React.ReactNode 
     abortControllerRef.current = false;
     setError(null);
     setScanResult(null);
+    setDocumentRejection(null);
     setState('scanning');
+    setActiveStageIndex(-1);
+    setStatusMessage('CHECKING DOCUMENT ELIGIBILITY');
+    setPipelineStages(INITIAL_PIPELINE);
+
+    requestControllerRef.current?.abort();
+    const requestController = new AbortController();
+    requestControllerRef.current = requestController;
+
+    let result: ScanResult;
+    try {
+      const response = await scanDocument(uploadedFile, requestController.signal);
+      if ('document_valid' in response && response.document_valid === false) {
+        setDocumentRejection(response);
+        setState('invalid');
+        setActiveStageIndex(-1);
+        setPipelineStages(INITIAL_PIPELINE);
+        setStatusMessage('DOCUMENT NOT RECOGNIZED');
+        return;
+      }
+      result = response;
+    } catch (err: unknown) {
+      if (abortControllerRef.current) return;
+      if (err instanceof ApiError && err.code === 'COOLDOWN_ACTIVE') {
+        const remaining = err.details?.cooldown_remaining_seconds || 300;
+        setCooldownActive(true);
+        setCooldownRemainingSeconds(remaining);
+        setState('cooldown');
+        setActiveStageIndex(-1);
+        setPipelineStages(INITIAL_PIPELINE);
+        setStatusMessage('VERIFICATION PAUSED');
+        return;
+      }
+      const message = err instanceof Error ? err.message : 'Verification failed. Please try again.';
+      setError(message);
+      setState('failed');
+      setActiveStageIndex(-1);
+      setPipelineStages(INITIAL_PIPELINE);
+      setStatusMessage('VERIFICATION FAILED');
+      return;
+    }
+
     setActiveStageIndex(0);
     setStatusMessage('Inspecting document structure');
     setPipelineStages({
-      ocr: 'processing',
-      validation: 'waiting',
-      tampering: 'waiting',
-      face: 'waiting',
+      ocr: 'processing', validation: 'waiting', tampering: 'waiting', face: 'waiting',
     });
-
-    // Fire the real API request immediately (runs in background)
-    const apiPromise = scanDocument(uploadedFile);
 
     // ── Animated stage progression (runs in parallel with the API call) ──
 
@@ -218,9 +287,8 @@ export const DocproveVerificationProvider: React.FC<{ children: React.ReactNode 
     });
     setStatusMessage('Compiling verification results');
 
-    // ── Wait for the actual API response ──────────────────────────────────
+    // ── Present the accepted backend result after the stage sequence ───────
     try {
-      const result = await apiPromise;
       if (abortControllerRef.current) return;
 
       setScanResult(result);
@@ -237,6 +305,13 @@ export const DocproveVerificationProvider: React.FC<{ children: React.ReactNode 
         setStatusMessage('AUTOMATED SCREENING COMPLETE — HIGH RISK');
       } else {
         setStatusMessage('AUTOMATED SCREENING COMPLETE');
+      }
+
+      if (result.cooldown_active && result.cooldown_remaining_seconds) {
+        window.setTimeout(() => {
+          setCooldownActive(true);
+          setCooldownRemainingSeconds(result.cooldown_remaining_seconds || 0);
+        }, 850);
       }
     } catch (err: unknown) {
       if (abortControllerRef.current) return;
@@ -260,6 +335,9 @@ export const DocproveVerificationProvider: React.FC<{ children: React.ReactNode 
     setSelectedFile(null);
     setUploadedFile(null);
     setScanResult(null);
+    setDocumentRejection(null);
+    setCooldownActive(false);
+    setCooldownRemainingSeconds(0);
     setError(null);
     setState('idle');
     setActiveStageIndex(-1);
@@ -276,7 +354,10 @@ export const DocproveVerificationProvider: React.FC<{ children: React.ReactNode 
         selectedFile,
         uploadedFile,
         scanResult,
+        documentRejection,
         error,
+        cooldownActive,
+        cooldownRemainingSeconds,
         activeStageIndex,
         currentStageName,
         handleFileSelect,

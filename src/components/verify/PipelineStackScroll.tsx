@@ -370,6 +370,7 @@ const StageNavCard: React.FC<StageNavCardProps> = ({ stage, isActive, onClick })
     <motion.button
       type="button"
       onClick={onClick}
+      title={stage.label}
       onMouseEnter={() => setIsHovered(true)}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
@@ -396,7 +397,7 @@ const StageNavCard: React.FC<StageNavCardProps> = ({ stage, isActive, onClick })
           ? '0 6px 16px -4px rgba(0, 0, 0, 0.25)'
           : 'none',
       }}
-      className={`group relative py-2 px-3 sm:px-3.5 rounded-[12px] border text-left transition-all duration-300 cursor-pointer flex items-center gap-2.5 shrink-0 overflow-hidden select-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-400/30 rainbow-hover-target ${
+      className={`group relative min-h-9 flex-1 min-w-0 py-2 px-1 sm:px-3.5 rounded-[12px] border text-left transition-all duration-300 cursor-pointer flex items-center justify-center sm:justify-start gap-1 sm:gap-2.5 overflow-hidden select-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-400/30 rainbow-hover-target ${
         isActive ? 'text-[#f8fafc] light:text-[#0f172a]' : 'text-[#71717a] light:text-[#475569] hover:text-[#d4d4d8] light:hover:text-[#0f172a]'
       }`}
     >
@@ -414,7 +415,7 @@ const StageNavCard: React.FC<StageNavCardProps> = ({ stage, isActive, onClick })
 
       {/* Active Stage Indicator Dot */}
       <span
-        className={`text-[10px] sm:text-[11px] font-mono tracking-tight transition-colors duration-300 ${
+        className={`text-[9px] sm:text-[11px] font-mono tracking-tight transition-colors duration-300 ${
           isActive
             ? 'text-blue-400 light:text-blue-600 font-semibold'
             : 'text-[#52525b] light:text-[#64748b] group-hover:text-[#8e95a5] light:group-hover:text-[#334155]'
@@ -423,7 +424,7 @@ const StageNavCard: React.FC<StageNavCardProps> = ({ stage, isActive, onClick })
         {stage.number}
       </span>
 
-      <span className={`text-[11px] sm:text-xs font-sans font-medium tracking-normal uppercase whitespace-nowrap transition-colors duration-300 ${
+      <span className={`hidden sm:inline text-[11px] sm:text-xs font-sans font-medium tracking-normal uppercase whitespace-nowrap transition-colors duration-300 ${
         isActive ? 'text-white light:text-[#0f172a]' : 'text-[#a1a1aa] light:text-[#475569] group-hover:text-white light:group-hover:text-[#0f172a]'
       }`}>
         {stage.label}
@@ -486,7 +487,7 @@ export const PipelineStackScroll: React.FC = () => {
   return (
     <section
       id="verification-pipeline"
-      className="relative w-full min-h-[calc(100vh-4rem)] sm:min-h-[calc(100svh-4.5rem)] flex flex-col justify-center py-4 sm:py-6 lg:py-8 border-t border-white/[0.07] light:border-[#DDDCD7] bg-[#07090e] light:bg-[#F5F4F0] transition-colors duration-500 overflow-hidden"
+      className="relative w-full min-h-0 sm:min-h-[calc(100svh-4.5rem)] flex flex-col justify-center py-4 sm:py-6 lg:py-8 border-t border-white/[0.07] light:border-[#DDDCD7] bg-[#07090e] light:bg-[#F5F4F0] transition-colors duration-500 overflow-hidden"
       aria-label="Verification Pipeline"
     >
       {/* ── Soft Deep Slate Ambient Lighting (Dark Mode Only) ── */}
@@ -515,7 +516,7 @@ export const PipelineStackScroll: React.FC = () => {
 
         {/* ── 2. Stage Navigation Bar ──── */}
         <div className="relative py-1">
-          <div className="flex items-center justify-between gap-2 sm:gap-3 overflow-x-auto select-none scrollbar-none py-1">
+          <div className="flex items-center justify-between gap-1 sm:gap-3 overflow-x-auto sm:overflow-visible select-none scrollbar-none py-1">
             {stages.map((stage) => (
               <StageNavCard
                 key={stage.id}
@@ -528,24 +529,24 @@ export const PipelineStackScroll: React.FC = () => {
         </div>
 
         {/* ── 3. Core Verification Surface (WARM IVORY #F1F0EB PHYSICAL MATERIAL SURFACE) ── */}
-        <div className="relative rounded-[28px] sm:rounded-[32px] bg-[#F1F0EB] border border-black/[0.08] shadow-[0_32px_80px_-20px_rgba(0,0,0,0.55),0_12px_32px_-8px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.7)] p-6 sm:p-7 lg:p-8 xl:p-9 transition-colors duration-500 w-full min-h-[560px] lg:h-[580px] flex flex-col justify-between overflow-hidden">
+        <div className="relative rounded-2xl sm:rounded-[32px] bg-[#F1F0EB] border border-black/[0.08] shadow-[0_32px_80px_-20px_rgba(0,0,0,0.55),0_12px_32px_-8px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.7)] p-4 sm:p-7 lg:p-8 xl:p-9 transition-colors duration-500 w-full min-h-0 lg:min-h-[560px] lg:h-[580px] flex flex-col justify-between overflow-hidden">
 
           {/* Extremely Subtle Mineral Paper Surface Sheen */}
           <div className="absolute inset-0 bg-gradient-to-b from-white/30 via-transparent to-black/[0.02] pointer-events-none" />
 
           {/* 12-Column Fixed Proportional Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 xl:gap-10 items-stretch h-full flex-1 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 lg:gap-8 xl:gap-10 items-stretch h-auto lg:h-full flex-1 relative z-10 min-w-0">
 
             {/* LEFT 7 COLUMNS: Document Visualization */}
-            <div className="lg:col-span-7 flex justify-center items-center relative py-2 h-full min-h-[340px] lg:min-h-[440px]">
+            <div className="lg:col-span-7 flex justify-center items-center relative py-2 h-auto lg:h-full min-h-[220px] sm:min-h-[340px] lg:min-h-[440px] min-w-0">
               {/* Show artifact viewer in tampering stage when artifacts are available */}
               {activeStage.showArtifacts && scanResult?.artifacts && Object.keys(scanResult.artifacts).length > 0 ? (
-                <div className="w-full max-w-[500px]">
+                <div className="w-[82%] sm:w-full max-w-[500px]">
                   <ArtifactViewer artifacts={scanResult.artifacts} />
                 </div>
               ) : documentImageUrl && scanResult ? (
                 /* Show the real document image after scan */
-                <div className="w-full max-w-[480px] lg:max-w-[500px] relative z-10">
+                <div className="w-[82%] sm:w-full max-w-[480px] lg:max-w-[500px] relative z-10">
                   <img
                     src={documentImageUrl}
                     alt="Uploaded document"
@@ -556,7 +557,7 @@ export const PipelineStackScroll: React.FC = () => {
                 /* Show the demo passport before scan */
                 <MasterPassportDocument
                   mode={activeStage.mode}
-                  className="w-full max-w-[480px] lg:max-w-[500px] object-contain relative z-10 transition-transform duration-700 ease-out drop-shadow-[0_20px_40px_rgba(0,0,0,0.28)]"
+                  className="w-[82%] sm:w-full max-w-[480px] lg:max-w-[500px] object-contain relative z-10 transition-transform duration-700 ease-out drop-shadow-[0_20px_40px_rgba(0,0,0,0.28)]"
                   tiltEffect={true}
                   scanResult={scanResult}
                 />
@@ -564,7 +565,7 @@ export const PipelineStackScroll: React.FC = () => {
             </div>
 
             {/* RIGHT 5 COLUMNS: Fixed Height Editorial Column with Anchored Controls */}
-            <div className="lg:col-span-5 flex flex-col justify-between h-full min-h-0 py-0">
+            <div className="lg:col-span-5 flex flex-col justify-start lg:justify-between h-auto lg:h-full min-h-0 py-0 min-w-0">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeStage.id}
@@ -572,7 +573,7 @@ export const PipelineStackScroll: React.FC = () => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -8 }}
                   transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-                  className="flex flex-col justify-between h-full flex-1 min-h-0"
+                  className="flex flex-col justify-between h-auto lg:h-full flex-1 min-h-0"
                 >
                   {/* Top & Middle Content Group */}
                   <div className="flex flex-col flex-1 min-h-0 gap-2 sm:gap-2.5 lg:gap-3">

@@ -204,7 +204,8 @@ export const DocproveNavbar: React.FC<NavbarProps> = ({ activePage, onSelectPage
   // Theme State Machine with localStorage Persistence
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     const saved = typeof window !== 'undefined' ? localStorage.getItem('docprove_theme') : null;
-    return saved === 'light' ? 'light' : 'dark';
+    const lightClassApplied = typeof document !== 'undefined' && document.documentElement.classList.contains('light');
+    return saved === 'light' || lightClassApplied ? 'light' : 'dark';
   });
 
   useEffect(() => {
@@ -216,6 +217,23 @@ export const DocproveNavbar: React.FC<NavbarProps> = ({ activePage, onSelectPage
     }
     localStorage.setItem('docprove_theme', theme);
   }, [theme]);
+
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMobileMenuOpen(false);
+    };
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [mobileMenuOpen]);
 
   const toggleTheme = () => {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
@@ -369,7 +387,7 @@ export const DocproveNavbar: React.FC<NavbarProps> = ({ activePage, onSelectPage
           {/* Mobile Menu Toggle Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="relative z-10 md:hidden p-1.5 rounded-lg text-slate-400 light:text-slate-600 hover:text-white light:hover:text-slate-950 transition-colors cursor-pointer"
+            className="relative z-10 md:hidden min-w-11 min-h-11 p-1.5 rounded-lg text-slate-400 light:text-slate-600 hover:text-white light:hover:text-slate-950 transition-colors cursor-pointer flex items-center justify-center"
             aria-label="Toggle menu"
           >
             {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
@@ -386,7 +404,7 @@ export const DocproveNavbar: React.FC<NavbarProps> = ({ activePage, onSelectPage
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -15, scale: 0.98 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-x-4 top-20 z-40 md:hidden rounded-2xl bg-[#0a0d17]/95 light:bg-white/95 backdrop-blur-2xl border border-white/[0.1] light:border-black/[0.1] p-5 shadow-2xl surface-control"
+            className="fixed inset-x-4 top-20 z-40 md:hidden max-h-[calc(100dvh-6rem)] overflow-y-auto rounded-2xl bg-[#0a0d17]/95 light:bg-white/95 backdrop-blur-2xl border border-white/[0.1] light:border-black/[0.1] p-5 shadow-2xl surface-control"
           >
             <div className="flex flex-col gap-3">
               <button
