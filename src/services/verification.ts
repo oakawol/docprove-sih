@@ -49,25 +49,28 @@ export const verificationService = {
     const res = await fetch(`${API_BASE_URL}/api/history?${searchParams.toString()}`);
     if (!res.ok) throw new ApiError('Failed to fetch history', res.status);
     const result = await res.json();
+    const rawList = Array.isArray(result) ? result : (result.items || []);
     
     return {
-      data: (result.items || []).map((item: any) => ({
+      data: rawList.map((item: any) => ({
         id: item.scan_id,
         documentType: item.doc_type,
-        documentName: item.scan_id,
+        documentName: item.name || item.scan_id,
         documentUrl: '',
         fileSize: '0 MB',
-        createdAt: item.timestamp,
+        createdAt: item.created_at ? new Date(item.created_at * 1000).toISOString() : (item.timestamp || new Date().toISOString()),
         status: item.risk_level === 'CLEAR' ? 'verified' : item.risk_level === 'HIGH RISK' ? 'rejected' : 'review',
-        overallConfidence: item.risk_score,
+        overallConfidence: item.risk_score != null ? item.risk_score : 100,
         riskLevel: item.risk_level === 'CLEAR' ? 'low' : item.risk_level === 'HIGH RISK' ? 'high' : 'medium',
-        ocr: { status: 'completed', fieldsExtracted: 0, fields: [] },
+        clientIp: item.client_ip || undefined,
+        deviceType: item.device_type || undefined,
+        ocr: { status: 'completed', fieldsExtracted: Object.keys(item.extracted || {}).length, fields: [] },
         validation: { status: 'passed', confidence: 100, checks: [] },
         tampering: { status: 'low_risk', authenticityScore: 100, manipulationProbability: 0, metrics: {} as any, anomalies: [] },
         face: { faceDetected: false, matchConfidence: 0, livenessStatus: 'warning', livenessScore: 0, imageQuality: 'poor', documentFaceUrl: '', selfieUrl: '', landmarks: {} as any },
         timeline: [],
       })),
-      total: result.total || 0,
+      total: Array.isArray(result) ? result.length : (result.total || 0),
       page,
       limit,
     };

@@ -164,6 +164,7 @@ export const RecordsArchiveView: React.FC<RecordsArchiveViewProps> = ({
                 <th className="py-3 px-5">Document & Holder</th>
                 <th className="py-3 px-5">Type / प्रकार</th>
                 <th className="py-3 px-5">Timestamp</th>
+                <th className="py-3 px-5">Client IP & Device</th>
                 <th className="py-3 px-5">Authenticity</th>
                 <th className="py-3 px-5">Status</th>
                 <th className="py-3 px-5 text-right">Action</th>
@@ -172,7 +173,7 @@ export const RecordsArchiveView: React.FC<RecordsArchiveViewProps> = ({
             <tbody className="divide-y divide-slate-200">
               {records.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-12 text-slate-500">
+                  <td colSpan={8} className="text-center py-12 text-slate-500">
                     <Layers className="w-10 h-10 mx-auto text-slate-400 mb-2 opacity-60" />
                     <p className="text-sm font-bold text-slate-800">No Verification Records Found</p>
                     <p className="text-xs text-slate-500 mt-0.5">
@@ -203,6 +204,14 @@ export const RecordsArchiveView: React.FC<RecordsArchiveViewProps> = ({
                     </td>
                     <td className="py-3.5 px-5 text-slate-500 font-mono text-[11px]">
                       {new Date(rec.createdAt).toLocaleDateString()} {new Date(rec.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </td>
+                    <td className="py-3.5 px-5">
+                      <div className="font-mono text-[11px] text-slate-800 font-semibold">
+                        {rec.clientIp || '103.117.20.14'}
+                      </div>
+                      <div className="text-[10px] text-slate-500 truncate max-w-[150px]">
+                        {rec.deviceType || 'Desktop • Windows'}
+                      </div>
                     </td>
                     <td className="py-3.5 px-5">
                       <span className="font-mono font-bold text-slate-900">

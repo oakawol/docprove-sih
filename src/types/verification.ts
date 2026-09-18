@@ -118,6 +118,8 @@ export interface VerificationRecord {
     confidence: number;
     checks: ValidationCheck[];
   };
+  clientIp?: string;
+  deviceType?: string;
   tampering: TamperingData;
   face: FaceVerificationData;
   timeline: TimelineEvent[];
