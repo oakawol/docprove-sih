@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowUpRight } from 'lucide-react';
+import aviralImage from '../../images/aviral.jpg';
+import ritikImage from '../../images/ritik.jpg';
+import sanaImage from '../../images/sana.jpg';
 import nishiImage from '../../images/nishi.jpg';
+import shreemaiImage from '../../images/shreemai.jpg';
+import bhuvanImage from '../../images/bhuvan.jpg';
 import makersBgImage from '../../images/makersbg.jpeg';
 
 interface MakerMember {
@@ -16,19 +21,19 @@ const MAKERS: MakerMember[] = [
     id: 'aviral',
     name: 'Aviral',
     linkedin: 'https://www.linkedin.com/in/oakawol/',
-    imagePath: '/images/aviral.jpg',
+    imagePath: aviralImage,
   },
   {
     id: 'ritik',
     name: 'Ritik',
     linkedin: 'https://www.linkedin.com/in/ritik-sharma-8105853a6/',
-    imagePath: '/images/ritik.jpg',
+    imagePath: ritikImage,
   },
   {
     id: 'sana',
     name: 'Sana',
     linkedin: 'https://www.linkedin.com/in/sana-khan-1267a8365?utm_source=share_via&utm_content=profile&utm_medium=member_android',
-    imagePath: '/images/sana.jpg',
+    imagePath: sanaImage,
   },
   {
     id: 'nishi',
@@ -40,13 +45,13 @@ const MAKERS: MakerMember[] = [
     id: 'shreemai',
     name: 'Shreemai',
     linkedin: 'https://www.linkedin.com/in/shreemayi-mungi-7a90b9379/',
-    imagePath: '/images/shreemai.jpg',
+    imagePath: shreemaiImage,
   },
   {
     id: 'bhuvan',
     name: 'Bhuvan',
     linkedin: 'https://www.linkedin.com/in/bhuvan-yadav-0b0b633b5/',
-    imagePath: '/images/bhuvan.jpg',
+    imagePath: bhuvanImage,
   },
 ];
 
