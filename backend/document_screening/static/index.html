@@ -2054,7 +2054,15 @@
         $("hist-empty").classList.toggle("hidden", rows.length > 0);
 
         for (const r of rows) {
-          const t = new Date(r.created_at * 1000).toLocaleString();
+          const t = new Date(r.created_at * 1000).toLocaleString('en-IN', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: true,
+          });
           const tr = document.createElement("tr");
           tr.className = "history-tr";
 

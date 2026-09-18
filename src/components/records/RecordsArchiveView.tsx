@@ -203,7 +203,15 @@ export const RecordsArchiveView: React.FC<RecordsArchiveViewProps> = ({
                       {rec.documentType === 'visa' ? 'Indian e-Visa' : rec.documentType.replace('_', ' ')}
                     </td>
                     <td className="py-3.5 px-5 text-slate-500 font-mono text-[11px]">
-                      {new Date(rec.createdAt).toLocaleDateString()} {new Date(rec.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {new Date(rec.createdAt).toLocaleString('en-IN', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                        hour12: true,
+                      })}
                     </td>
                     <td className="py-3.5 px-5">
                       <div className="font-mono text-[11px] text-slate-800 font-semibold">
