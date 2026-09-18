@@ -8,7 +8,7 @@
 
 import type { CooldownResponse, DocumentRejectedResult, ScanResult } from '../types/scan';
 
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://backend-docprove.onrender.com';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://docprove-24gld5l1.b4a.run';
 
 // ── Errors ──────────────────────────────────────────────────────────────────
 
