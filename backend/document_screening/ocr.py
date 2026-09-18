@@ -153,30 +153,65 @@ def preprocess(img: Image.Image) -> Image.Image:
     return img
 
 
-def run_ocr(img: Image.Image, psm: int = 11) -> list[Word]:
-    """psm 11 = sparse text, which suits card layouts better than a page model."""
+def _merge_word_lists(primary: list[Word], secondary: list[Word]) -> list[Word]:
+    """Merge OCR words from two passes (e.g. sparse PSM 11 and dense PSM 6) without duplicates."""
+    def _iou(b1, b2):
+        x0 = max(b1[0], b2[0])
+        y0 = max(b1[1], b2[1])
+        x1 = min(b1[2], b2[2])
+        y1 = min(b1[3], b2[3])
+        if x1 <= x0 or y1 <= y0:
+            return 0.0
+        inter = (x1 - x0) * (y1 - y0)
+        a1 = (b1[2] - b1[0]) * (b1[3] - b1[1])
+        a2 = (b2[2] - b2[0]) * (b2[3] - b2[1])
+        return inter / float(a1 + a2 - inter)
+
+    merged = list(primary)
+    for w in secondary:
+        if not any(_iou(w.box, ex.box) > 0.35 for ex in merged):
+            merged.append(w)
+    return merged
+
+
+def run_ocr(img: Image.Image, psm: int = 11, dual_pass: bool = True) -> list[Word]:
+    """Extract words from document image.
+
+    By default runs a dual-pass OCR (PSM 11 sparse + PSM 6 uniform block)
+    to guarantee that both sparse card fields and edited text blocks are recognized.
+    """
     if not _TESSERACT:
         raise RuntimeError(
             "pytesseract/tesseract not available. Install tesseract-ocr and pytesseract, "
             "or plug another engine into run_ocr()."
         )
-    cfg = f"--psm {psm} -c preserve_interword_spaces=1"
-    data = pytesseract.image_to_data(img, output_type=Output.DICT, config=cfg)
-    words: list[Word] = []
-    for i, text in enumerate(data["text"]):
-        text = text.strip()
-        if not text:
-            continue
-        try:
-            conf = float(data["conf"][i])
-        except (TypeError, ValueError):
-            conf = -1.0
-        if conf < 0:
-            continue
-        x, y, w, h = data["left"][i], data["top"][i], data["width"][i], data["height"][i]
-        words.append(Word(text, conf, (x, y, x + w, y + h),
-                          (data["block_num"][i], data["par_num"][i], data["line_num"][i])))
-    return words
+    def _extract_words(config: str) -> list[Word]:
+        data = pytesseract.image_to_data(img, output_type=Output.DICT, config=config)
+        words: list[Word] = []
+        for i, text in enumerate(data["text"]):
+            text = text.strip()
+            if not text:
+                continue
+            try:
+                conf = float(data["conf"][i])
+            except (TypeError, ValueError):
+                conf = -1.0
+            if conf < 0:
+                continue
+            x, y, w, h = data["left"][i], data["top"][i], data["width"][i], data["height"][i]
+            words.append(Word(text, conf, (x, y, x + w, y + h),
+                              (data["block_num"][i], data["par_num"][i], data["line_num"][i])))
+        return words
+
+    cfg_primary = f"--psm {psm} -c preserve_interword_spaces=1"
+    words_primary = _extract_words(cfg_primary)
+    if not dual_pass:
+        return words_primary
+
+    alt_psm = 6 if psm != 6 else 11
+    cfg_secondary = f"--psm {alt_psm} -c preserve_interword_spaces=1"
+    words_secondary = _extract_words(cfg_secondary)
+    return _merge_word_lists(words_primary, words_secondary)
 
 
 # --------------------------------------------------------------------------- #
@@ -211,7 +246,8 @@ def _token_match(seen: str, want: str) -> bool:
     """Short labels (SEX, DOB) must match exactly; longer ones tolerate one
     OCR slip, because a misread label must not lose the whole field."""
     seen = re.sub(r"[^A-Z0-9]", "", seen or "")
-    if not seen:
+    want = re.sub(r"[^A-Z0-9]", "", want or "")
+    if not seen or not want:
         return False
     if len(want) <= 3:
         return seen == want
@@ -222,31 +258,53 @@ def _token_match(seen: str, want: str) -> bool:
 
 def find_label(lines: list[list[Word]], label: str) -> tuple[int, int, int, int] | None:
     """Locate a (possibly multi-word) label and return its bounding box."""
-    tokens = [t for t in label.replace("/", " ").replace(".", "").upper().split() if t]
+    tokens = [re.sub(r"[^A-Z0-9]", "", t.upper()) for t in label.replace("/", " ").split()]
+    tokens = [t for t in tokens if t]
     for line in lines:
         texts = [re.sub(r"[^A-Z0-9]", "", w.text.upper()) for w in line]
+        # First try exact contiguous window
         for i in range(len(texts) - len(tokens) + 1):
             window = texts[i:i + len(tokens)]
             if all(_token_match(a, b) for a, b in zip(window, tokens)):
                 seg = line[i:i + len(tokens)]
                 return (min(w.box[0] for w in seg), min(w.box[1] for w in seg),
                         max(w.box[2] for w in seg), max(w.box[3] for w in seg))
+        # Fallback: subsequence match allowing duplicate/noise tokens between label words (e.g. OF OF)
+        matched_words = []
+        curr_idx = 0
+        for w, txt in zip(line, texts):
+            if not txt:
+                continue
+            if _token_match(txt, tokens[curr_idx]):
+                matched_words.append(w)
+                curr_idx += 1
+                if curr_idx == len(tokens):
+                    return (min(w.box[0] for w in matched_words), min(w.box[1] for w in matched_words),
+                            max(w.box[2] for w in matched_words), max(w.box[3] for w in matched_words))
     return None
 
 
 def value_below(lines: list[list[Word]], label_box, *, max_gap: int = 70,
-                x_tol: int = 22, max_width: int = 420) -> tuple[str, list[int], float] | None:
-    """Take the text line that sits directly under a label, left-aligned with it."""
-    lx0, _, _, ly1 = label_box
+                x_tol: int = 30, max_width: int = 420) -> tuple[str, list[int], float] | None:
+    """Take the text line that sits directly under a label, left-aligned with it.
+
+    Tolerates slight vertical overlap (e.g. manually edited / overlaid text).
+    """
+    lx0, ly0, lx1, ly1 = label_box
     best = None
     for line in lines:
+        # allow words whose top is within -30px of label bottom, provided their vertical center is below label top
         cand = [w for w in line
                 if lx0 - x_tol <= w.box[0] <= lx0 + max_width
-                and 0 < w.box[1] - ly1 < max_gap]
+                and -30 <= w.box[1] - ly1 < max_gap
+                and (w.box[1] + w.box[3]) / 2 > ly0]
         if not cand:
             continue
         # a row that is nothing but printed labels is not a value
         if all(w.text.upper().strip(".,()") in STOP_WORDS for w in cand):
+            continue
+        # avoid matching the label's own tokens if they slightly overlap
+        if any(w.box[0] >= lx0 - 5 and w.box[2] <= lx1 + 10 and abs(w.box[1] - ly0) < 15 for w in cand):
             continue
         gap = min(w.box[1] for w in cand) - ly1
         if best is None or gap < best[0]:
@@ -491,7 +549,9 @@ def extract(path_or_img, doc_type: str | None = None) -> OCRResult:
 
     # signature specimen sits *above* its caption - useful as a cross-check
     if doc_type == "passport":
-        cap = find_label(lines, "SIGNATURE OF HOLDER")
+        cap = (find_label(lines, "SIGNATURE OF HOLDER") or
+               find_label(lines, "SIGNATURE HOLDER") or
+               find_label(lines, "OF HOLDER"))
         if cap:
             above = value_above(lines, cap)
             if above:

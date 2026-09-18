@@ -27,6 +27,12 @@ Then open **http://127.0.0.1:8000** in a browser. That's the whole app:
 - **Open full report** on any scan gives a standalone, shareable HTML report
   (Phase 10) with the images embedded, so it works as a plain file too.
 
+The API performs a server-side document eligibility check before the expensive
+verification phases. It also keeps a hashed per-session/client protection record
+in `data/scan_history.db`: three consecutive completed suspicious results start
+a five-minute cooldown. The browser sends only a random session identifier in
+`X-Docprove-Session`; cooldown timing is stored and enforced by the server.
+
 No separate frontend build step, no Node, no database server - `uvicorn` is
 the only thing you run.
 

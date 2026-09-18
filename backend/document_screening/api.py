@@ -23,7 +23,7 @@ import tempfile
 import uuid
 from pathlib import Path
 
-from fastapi import FastAPI, File, HTTPException, Query, UploadFile
+from fastapi import FastAPI, File, HTTPException, Query, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -32,12 +32,14 @@ try:
     from . import calibration as cal_mod
     from . import history as history_mod
     from . import report as report_mod
+    from . import protection as protection_mod
     from .pipeline import screen
 except ImportError:
     import calibration as cal_mod
     import history as history_mod
     import report as report_mod
     from pipeline import screen
+    import protection as protection_mod
 
 BASE = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE / "data"
@@ -114,9 +116,26 @@ def index() -> HTMLResponse:
 
 
 @app.post("/api/scan")
-async def api_scan(document: UploadFile = File(...),
+async def api_scan(request: Request,
+                   document: UploadFile = File(...),
                    probe: UploadFile | None = File(None),
                    doc_type: str | None = None):
+    session_id = request.headers.get("X-Docprove-Session") if request else None
+    client_host = request.client.host if request and request.client else None
+
+    # This check intentionally happens before reading or decoding the upload.
+    protection = protection_mod.check(DB_PATH, session_id, client_host)
+    if protection["cooldown_active"]:
+        raise HTTPException(
+            429,
+            {
+                "cooldown_active": True,
+                "cooldown_remaining_seconds": protection["cooldown_remaining_seconds"],
+                "cooldown_until": protection["cooldown_until"],
+                "message": "Verification temporarily unavailable. Please try again later.",
+            },
+        )
+
     # ── Validate upload ──────────────────────────────────────────────────
     _validate_upload(document)
 
@@ -157,6 +176,15 @@ async def api_scan(document: UploadFile = File(...),
                         save_history=True, db_path=DB_PATH)
     except Exception as exc:                                   # pragma: no cover
         raise HTTPException(500, f"Screening failed: {exc}") from exc
+
+    if result.get("document_valid") is False:
+        return JSONResponse(result)
+
+    suspicious = bool(result.get("tampering", {}).get("tampered")) or (
+        result.get("risk", {}).get("status") == "HIGH RISK"
+    )
+    protection = protection_mod.record_result(DB_PATH, session_id, client_host, suspicious)
+    result.update(protection)
 
     for key in ("original", "heatmap", "annotated"):
         if key in result["artifacts"]:
@@ -210,7 +238,11 @@ def artifacts(scan_id: str, kind: str):
     path = ARTIFACTS_DIR / f"{scan_id}_{kind}.png"
     if not path.exists():
         raise HTTPException(404, "Artifact not found")
-    return FileResponse(path)
+    return FileResponse(path, headers={
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        "Pragma": "no-cache",
+        "Expires": "0",
+    })
 
 
 @app.get("/health")

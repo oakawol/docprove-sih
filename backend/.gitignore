@@ -1,0 +1,31 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Environment variables & virtualenvs
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Database & Generated Uploads/Artifacts
+*.db
+*.sqlite3
+data/uploads/*
+!data/uploads/.gitkeep
+data/artifacts/*
+!data/artifacts/.gitkeep
+
+# IDE & OS files
+.DS_Store
+.idea/
+.vscode/
+*.rar
+*.zip

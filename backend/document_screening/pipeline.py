@@ -14,6 +14,7 @@ everything scanned before it.
 
 from __future__ import annotations
 
+import re
 import time
 import uuid
 from pathlib import Path
@@ -22,6 +23,7 @@ from typing import Any
 from PIL import Image
 
 from . import face as face_mod
+from . import eligibility as eligibility_mod
 from . import history as history_mod
 from . import mrz as mrz_mod
 from . import ocr as ocr_mod
@@ -67,14 +69,25 @@ def _cross_signals(record: dict[str, str | None], mrz_res: mrz_mod.MRZResult,
     if stamp_issue:
         push("stamp", stamp_issue)
 
-    sig = (record.get("signature_name") or "").replace(" ", "")
+    sig = (record.get("signature_name") or "").strip().upper()
     if sig and doc_type == "passport":
-        printed = ((record.get("given_name") or "") + (record.get("surname") or "")).replace(" ", "")
-        if printed and mrz_mod._levenshtein(sig.upper(), printed.upper()) > 2:
-            msg = (f"Printed name does not match the signature specimen "
-                   f"({record.get('signature_name')}).")
-            for f in ("surname", "given_name", "signature_name"):
-                push(f, msg)
+        sig_compact = re.sub(r"[^A-Z0-9]", "", sig)
+        given_val = (record.get("given_name") or "").strip().upper()
+        sur_val = (record.get("surname") or "").strip().upper()
+        given_compact = re.sub(r"[^A-Z0-9]", "", given_val)
+        sur_compact = re.sub(r"[^A-Z0-9]", "", sur_val)
+        printed_compact = given_compact + sur_compact
+
+        if printed_compact and mrz_mod._levenshtein(sig_compact, printed_compact) > 2:
+            msg = f"Printed name does not match the signature specimen ({record.get('signature_name')})."
+            # If surname matches part of signature but given_name does not, attribute to given_name
+            if sur_compact and sur_compact in sig_compact and given_compact and given_compact not in sig_compact:
+                push("given_name", msg)
+            elif given_compact and given_compact in sig_compact and sur_compact and sur_compact not in sig_compact:
+                push("surname", msg)
+            else:
+                for f in ("surname", "given_name", "signature_name"):
+                    push(f, msg)
     return signals
 
 
@@ -93,6 +106,33 @@ def screen(image_path: str | Path | Image.Image, *, doc_type: str | None = None,
     result = ocr_mod.extract(img, doc_type=doc_type)
     record = _printed_record(result)
     t_ocr = time.time() - t0
+
+    # Reject unrelated/empty images before validation, MRZ, tampering, face,
+    # artifact rendering, risk scoring, or audit persistence can consume work.
+    eligibility = eligibility_mod.assess(result)
+    if not eligibility.document_valid:
+        return {
+            "scan_id": scan_id,
+            "document_valid": False,
+            "document_type": "unknown",
+            "rejection_reason": eligibility.rejection_reason,
+            "message": "The uploaded image does not contain enough recognizable document information to begin verification.",
+            "eligibility": eligibility.to_dict(),
+            "doc_type": "unknown",
+            "image_size": [img.width, img.height],
+            "ocr": result.to_dict(),
+            "extracted": {k: v for k, v in record.items() if v},
+            "validation": {"checks": [], "failed": 0, "warnings": 0, "failed_fields": []},
+            "mrz": {"present": False, "mismatches": [], "issues": []},
+            "tampering": {"tampered": False, "findings": [], "diagnostics": {"regions": {}}},
+            "face": {"status": "not_attempted", "detail": "Document eligibility was not met."},
+            "multiple_identity": [],
+            "risk": None,
+            "final_status": "INVALID INPUT",
+            "artifacts": {},
+            "timings_ms": {"ocr": round(t_ocr * 1000), "validation": 0, "mrz": 0,
+                            "tampering": 0, "face": 0, "total": round((time.time() - started) * 1000)},
+        }
 
     result.stamp_box = None
     result.stamp_date = None
@@ -177,6 +217,9 @@ def screen(image_path: str | Path | Image.Image, *, doc_type: str | None = None,
     # ---- Phase 10: final report ---------------------------------------------------
     report = {
         "scan_id": scan_id,
+        "document_valid": True,
+        "document_type": result.doc_type,
+        "eligibility": eligibility.to_dict(),
         "doc_type": result.doc_type,
         "image_size": [img.width, img.height],
         "ocr": result.to_dict(),
