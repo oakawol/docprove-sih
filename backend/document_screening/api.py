@@ -117,17 +117,35 @@ def index() -> HTMLResponse:
     return HTMLResponse("<h1>DocProve API Backend Live</h1><p>Visit <a href='/health'>/health</a></p>")
 
 
+def _get_client_ip(request: Request) -> str:
+    """Extract real client IP considering reverse proxies (Cloudflare, Railway, Nginx)."""
+    cf_ip = request.headers.get("cf-connecting-ip")
+    if cf_ip:
+        return cf_ip.strip()
+    x_forwarded = request.headers.get("x-forwarded-for")
+    if x_forwarded:
+        return x_forwarded.split(",")[0].strip()
+    x_real = request.headers.get("x-real-ip")
+    if x_real:
+        return x_real.strip()
+    return request.client.host if request.client else "unknown"
+
+
 @app.post("/api/scan")
 async def api_scan(request: Request,
                    document: UploadFile = File(...),
                    probe: UploadFile | None = File(None),
                    doc_type: str | None = None):
     session_id = request.headers.get("X-Docprove-Session") if request else None
-    client_host = request.client.host if request and request.client else None
+    client_ip = _get_client_ip(request)
+    client_host = client_ip
+
+    print(f"\n[UPLOAD LOG] Document received: '{document.filename}' | Client IP: {client_ip} | Session: {session_id or 'None'}")
 
     # This check intentionally happens before reading or decoding the upload.
     protection = protection_mod.check(DB_PATH, session_id, client_host)
     if protection["cooldown_active"]:
+        print(f"[RATE LIMIT] Cooldown active for IP: {client_ip}")
         raise HTTPException(
             429,
             {
@@ -175,7 +193,8 @@ async def api_scan(request: Request,
         result = screen(image_path, doc_type=doc_type or None,
                         artifacts_dir=ARTIFACTS_DIR, scan_id=scan_id,
                         profile=_profile(), probe_image=probe_path,
-                        save_history=True, db_path=DB_PATH)
+                        save_history=True, db_path=DB_PATH,
+                        client_ip=client_ip)
     except Exception as exc:                                   # pragma: no cover
         raise HTTPException(500, f"Screening failed: {exc}") from exc
 
