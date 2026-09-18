@@ -23,10 +23,12 @@ data/uploads/*
 data/artifacts/*
 !data/artifacts/.gitkeep
 
+# Build output
+dist/
+
 # IDE & OS files
 .DS_Store
 .idea/
 .vscode/
 *.rar
 *.zip
-
