@@ -29,8 +29,11 @@ import cv2
 import numpy as np
 from PIL import Image
 
-_CASCADE = cv2.CascadeClassifier(
-    cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+try:
+    _cascade_file = getattr(getattr(cv2, "data", None), "haarcascades", "") + "haarcascade_frontalface_default.xml"
+    _CASCADE = cv2.CascadeClassifier(_cascade_file) if hasattr(cv2, "CascadeClassifier") else None
+except Exception:
+    _CASCADE = None
 
 MATCH_THRESHOLD = 55.0        # score (0-100) at or above which faces are called a match
 REVIEW_THRESHOLD = 40.0       # below MATCH but at/above this: inconclusive, not a fail
@@ -53,7 +56,7 @@ def _detect_face(img: np.ndarray) -> tuple[np.ndarray, bool]:
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     gray = cv2.equalizeHist(gray)
     faces = _CASCADE.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5,
-                                      minSize=(40, 40))
+                                      minSize=(40, 40)) if _CASCADE is not None and getattr(_CASCADE, "empty", lambda: True)() is False else []
     if len(faces) == 0:
         return img, False
     x, y, w, h = max(faces, key=lambda f: f[2] * f[3])

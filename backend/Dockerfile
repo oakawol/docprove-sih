@@ -20,3 +20,4 @@ COPY . .
 # Expose port and run uvicorn
 EXPOSE 8000
 CMD ["uvicorn", "document_screening.api:app", "--host", "0.0.0.0", "--port", "8000"]
+
