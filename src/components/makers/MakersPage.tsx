@@ -117,30 +117,43 @@ const MakerDetailModal: React.FC<{
 }> = ({ member, onClose }) => {
   if (!member) return null;
 
+  const commitsUrl = member.github
+    ? `${member.github}?tab=overview`
+    : undefined;
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.25 }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-10 bg-black/80 backdrop-blur-xl"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-8 bg-black/75 backdrop-blur-2xl"
       onClick={onClose}
     >
       <motion.div
-        initial={{ opacity: 0, scale: 0.94, y: 20 }}
+        initial={{ opacity: 0, scale: 0.92, y: 24 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 15 }}
-        transition={{ type: 'spring', damping: 26, stiffness: 320 }}
+        exit={{ opacity: 0, scale: 0.94, y: 16 }}
+        transition={{ type: 'spring', damping: 28, stiffness: 340 }}
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-2xl bg-[#0b0f19] light:bg-[#ffffff] border border-white/15 light:border-black/10 rounded-3xl overflow-hidden shadow-[0_30px_90px_rgba(0,0,0,0.85)] text-left"
+        className="relative w-full max-w-lg rounded-[32px] overflow-hidden p-8 sm:p-10 text-left transition-all duration-300
+          bg-gradient-to-b from-[#0d121f] via-[#090d16] to-[#060910] 
+          light:from-[#ffffff] light:via-[#faf9f6] light:to-[#f2f0eb]
+          border border-white/[0.12] light:border-black/[0.1]
+          shadow-[0_25px_80px_-15px_rgba(0,0,0,0.8),0_0_50px_-10px_rgba(59,130,246,0.15)]
+          light:shadow-[0_25px_70px_-15px_rgba(0,0,0,0.15)]"
       >
-        {/* Ambient Top Glow */}
-        <div className="absolute top-0 inset-x-0 h-40 bg-gradient-to-b from-blue-500/15 via-cyan-500/5 to-transparent pointer-events-none" />
+        {/* Subtle Ambient Radial Lighting for True 3D Depth */}
+        <div className="absolute -top-24 -left-24 w-64 h-64 bg-blue-500/15 light:bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-indigo-500/15 light:bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
 
-        {/* Close Button */}
+        {/* Minimal Subtle Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 z-20 w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-white/80 hover:text-white flex items-center justify-center transition-all cursor-pointer backdrop-blur-md border border-white/10"
+          aria-label="Close modal"
+          className="absolute top-6 right-6 z-20 w-9 h-9 rounded-full flex items-center justify-center transition-all cursor-pointer
+            bg-white/[0.06] hover:bg-white/[0.14] active:scale-95 text-white/70 hover:text-white border border-white/10
+            light:bg-black/[0.05] light:hover:bg-black/[0.1] light:text-black/70 light:hover:text-black light:border-black/10"
         >
           <svg className="w-4 h-4 stroke-[2.2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <line x1="18" y1="6" x2="6" y2="18" />
@@ -148,146 +161,83 @@ const MakerDetailModal: React.FC<{
           </svg>
         </button>
 
-        <div className="relative z-10 p-6 sm:p-8 space-y-6">
-          {/* Header section with photo, name, role and social buttons */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 pb-6 border-b border-white/10 light:border-black/10">
-            <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border-2 border-white/20 light:border-black/15 shadow-xl shrink-0">
+        {/* Content Container */}
+        <div className="relative z-10 flex flex-col items-center text-center space-y-6">
+          {/* Profile Photo with 3D Bevel & Ring */}
+          <div className="relative group">
+            <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl overflow-hidden p-1
+              bg-gradient-to-br from-white/20 via-white/5 to-white/0 
+              light:from-black/15 light:via-black/5 light:to-transparent 
+              shadow-[0_12px_35px_rgba(0,0,0,0.5)] light:shadow-[0_12px_30px_rgba(0,0,0,0.1)]">
               <img
                 src={member.imagePath}
                 alt={member.name}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover rounded-[22px] filter contrast-[1.04]"
               />
-              <div className="absolute inset-0 ring-1 ring-inset ring-white/20 rounded-2xl pointer-events-none" />
             </div>
 
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-[10px] font-mono tracking-widest uppercase px-2 py-0.5 rounded-full bg-blue-500/15 border border-blue-500/30 text-blue-400 light:text-blue-600 font-semibold">
-                  {member.department}
-                </span>
-                <span className="inline-flex items-center gap-1 text-[10px] font-mono text-emerald-400 font-semibold">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  ONLINE
-                </span>
-              </div>
-
-              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white light:text-slate-900 font-sans">
-                {member.name}
-              </h2>
-              <p className="text-xs sm:text-sm text-[#8e95a5] light:text-[#555B66] mt-0.5">
-                {member.role}
-              </p>
-
-              {/* Social Link Badges */}
-              <div className="flex items-center gap-2.5 mt-3.5">
-                {member.github && (
-                  <a
-                    href={member.github}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 text-xs font-mono text-white border border-white/15 transition-all shadow-sm group"
-                  >
-                    <svg className="w-3.5 h-3.5 fill-current transition-transform group-hover:scale-110" viewBox="0 0 24 24">
-                      <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
-                    </svg>
-                    <span>@{member.githubUsername || 'github'}</span>
-                    <ArrowUpRight className="w-3 h-3 opacity-60" />
-                  </a>
-                )}
-
-                <a
-                  href={member.linkedin}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600/20 hover:bg-blue-600/35 active:scale-95 text-xs font-mono text-blue-300 border border-blue-500/30 transition-all shadow-sm group"
-                >
-                  <svg className="w-3.5 h-3.5 fill-current transition-transform group-hover:scale-110" viewBox="0 0 24 24">
-                    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
-                  </svg>
-                  <span>Connect on LinkedIn</span>
-                  <ArrowUpRight className="w-3 h-3 opacity-60" />
-                </a>
-              </div>
+            {/* Online verification indicator */}
+            <div className="absolute -bottom-1.5 -right-1.5 px-2.5 py-0.5 rounded-full flex items-center gap-1.5
+              bg-[#0b0f19] light:bg-white border border-white/15 light:border-black/10 shadow-md">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-[9px] font-mono font-semibold tracking-wider text-emerald-400 light:text-emerald-600">
+                ACTIVE
+              </span>
             </div>
           </div>
 
-          {/* Metric Badges */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            <div className="p-3.5 rounded-2xl bg-white/[0.03] light:bg-black/[0.02] border border-white/[0.08] light:border-black/[0.08]">
-              <span className="text-[10px] font-mono uppercase tracking-wider text-[#8e95a5] light:text-[#737781] block">
-                Contributions
-              </span>
-              <span className="text-xl font-mono font-bold text-white light:text-[#111318] mt-0.5 block">
-                {member.commitsEstimate}+
-              </span>
-              <span className="text-[10px] text-emerald-400 font-mono">Code commits & PRs</span>
-            </div>
-
-            <div className="p-3.5 rounded-2xl bg-white/[0.03] light:bg-black/[0.02] border border-white/[0.08] light:border-black/[0.08]">
-              <span className="text-[10px] font-mono uppercase tracking-wider text-[#8e95a5] light:text-[#737781] block">
-                Review Status
-              </span>
-              <span className="text-xl font-mono font-bold text-blue-400 light:text-blue-600 mt-0.5 block">
-                Verified
-              </span>
-              <span className="text-[10px] text-[#8e95a5] light:text-[#737781] font-mono">Docprove Core</span>
-            </div>
-
-            <div className="col-span-2 sm:col-span-1 p-3.5 rounded-2xl bg-white/[0.03] light:bg-black/[0.02] border border-white/[0.08] light:border-black/[0.08]">
-              <span className="text-[10px] font-mono uppercase tracking-wider text-[#8e95a5] light:text-[#737781] block">
-                Activity Pulse
-              </span>
-              <div className="flex items-center gap-1 mt-2">
-                {[4, 8, 5, 9, 7, 10, 8, 12, 11, 14, 10, 13].map((h, i) => (
-                  <div
-                    key={i}
-                    style={{ height: `${h * 1.5}px` }}
-                    className="w-1.5 rounded-full bg-blue-500/70 light:bg-blue-600/70"
-                  />
-                ))}
-              </div>
-              <span className="text-[10px] text-[#8e95a5] light:text-[#737781] font-mono mt-1.5 block">High frequency</span>
-            </div>
-          </div>
-
-          {/* Bio statement */}
-          <div>
-            <span className="text-[10px] font-mono uppercase tracking-widest text-[#8e95a5] light:text-[#737781] block mb-1.5">
-              Mission Statement
+          {/* Member Name & Role */}
+          <div className="space-y-2 max-w-sm">
+            <span className="text-[10px] font-mono tracking-[0.2em] uppercase font-semibold text-blue-400 light:text-blue-600">
+              {member.department}
             </span>
-            <p className="text-xs sm:text-sm text-white/90 light:text-slate-800 leading-relaxed font-sans">
-              {member.bio}
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-white light:text-[#111318] font-sans">
+              {member.name}
+            </h2>
+            <p className="text-xs sm:text-sm font-mono text-[#8e95a5] light:text-[#555B66]">
+              {member.role}
             </p>
           </div>
 
-          {/* Featured Contribution */}
-          <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-950/30 to-indigo-950/20 border border-blue-500/20">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="w-2 h-2 rounded-full bg-blue-400" />
-              <span className="text-[10px] font-mono uppercase tracking-wider text-blue-300 font-semibold">
-                Key Deliverable
-              </span>
-            </div>
-            <p className="text-xs font-mono text-white/90 leading-snug">
-              {member.featuredContribution}
-            </p>
-          </div>
+          {/* Clean Description */}
+          <p className="text-xs sm:text-sm text-white/80 light:text-slate-700 leading-relaxed font-sans max-w-md px-2">
+            {member.bio}
+          </p>
 
-          {/* Specialties Pills */}
-          <div>
-            <span className="text-[10px] font-mono uppercase tracking-widest text-[#8e95a5] light:text-[#737781] block mb-2">
-              Domain Expertise
-            </span>
-            <div className="flex flex-wrap gap-1.5">
-              {member.specialties.map((spec) => (
-                <span
-                  key={spec}
-                  className="text-[11px] font-mono px-2.5 py-1 rounded-lg bg-white/[0.05] light:bg-black/[0.04] border border-white/[0.1] light:border-black/[0.08] text-white/90 light:text-slate-700"
-                >
-                  {spec}
-                </span>
-              ))}
-            </div>
+          {/* Key Buttons: LinkedIn & GitHub Commits Page */}
+          <div className="w-full pt-3 space-y-3">
+            {/* Connect on LinkedIn Button */}
+            <a
+              href={member.linkedin}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full min-h-12 py-3.5 px-6 rounded-2xl font-semibold text-xs tracking-[0.1em] uppercase flex items-center justify-center gap-2.5 transition-all duration-300 cursor-pointer shadow-lg active:scale-[0.98]
+                bg-[#0A66C2] hover:bg-[#004182] text-white shadow-[#0a66c2]/25 hover:shadow-[#0a66c2]/40"
+            >
+              <svg className="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
+                <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
+              </svg>
+              <span>CONNECT ON LINKEDIN</span>
+              <ArrowUpRight className="w-4 h-4 stroke-[2.2]" />
+            </a>
+
+            {/* GitHub Commits Page Button */}
+            {member.github && (
+              <a
+                href={commitsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full min-h-12 py-3.5 px-6 rounded-2xl font-semibold text-xs tracking-[0.1em] uppercase flex items-center justify-center gap-2.5 transition-all duration-300 cursor-pointer shadow-md active:scale-[0.98]
+                  bg-white/10 hover:bg-white/20 text-white border border-white/15
+                  light:bg-black/[0.05] light:hover:bg-black/[0.1] light:text-slate-900 light:border-black/10"
+              >
+                <svg className="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
+                  <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
+                </svg>
+                <span>GITHUB COMMITS &amp; ACTIVITY</span>
+                <ArrowUpRight className="w-4 h-4 stroke-[2.2]" />
+              </a>
+            )}
           </div>
         </div>
       </motion.div>
