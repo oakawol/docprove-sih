@@ -146,10 +146,13 @@ def load_image(path_or_img) -> Image.Image:
 
 
 def preprocess(img: Image.Image) -> Image.Image:
-    """Upscale small scans; OCR on document images likes ~1500px wide."""
-    if img.width < 1200:
+    """Downscale huge photos to max 1600px and upscale small scans to min 1200px."""
+    if img.width > 1600 or img.height > 1600:
+        scale = 1600 / max(img.width, img.height)
+        img = img.resize((int(img.width * scale), int(img.height * scale)), Image.BILINEAR)
+    elif img.width < 1200:
         scale = 1200 / img.width
-        img = img.resize((int(img.width * scale), int(img.height * scale)), Image.LANCZOS)
+        img = img.resize((int(img.width * scale), int(img.height * scale)), Image.BILINEAR)
     return img
 
 
@@ -381,22 +384,20 @@ def _mrz_hypotheses(img: Image.Image, box: list[int]) -> list[str]:
     """Read one MRZ row several ways; the checksum decides which read is right."""
     crop = img.crop((max(0, box[0] - 8), max(0, box[1] - 8),
                      min(img.width, box[2] + 8), min(img.height, box[3] + 8)))
-    if crop.width < 2200:
-        f = 2200 / max(1, crop.width)
-        crop = crop.resize((int(crop.width * f), int(crop.height * f)), Image.LANCZOS)
-    variants = [(crop, 7), (_binarize(crop), 13), (_binarize(crop, 190), 7),
-                (crop, 13), (_binarize(crop, 170), 7), (_binarize(crop, 210), 13)]
+    if crop.width < 1400:
+        f = 1400 / max(1, crop.width)
+        crop = crop.resize((int(crop.width * f), int(crop.height * f)), Image.BILINEAR)
+    variants = [(crop, 7), (_binarize(crop), 13), (_binarize(crop, 190), 7)]
     out: list[str] = []
     for var, psm in variants:
-        for _ in (0,):
-            cfg = f"--psm {psm} -c tessedit_char_whitelist={MRZ_WHITELIST}"
-            try:
-                raw = pytesseract.image_to_string(var, config=cfg)
-            except Exception:
-                continue
-            text = re.sub(r"[^A-Z0-9<]", "", raw.upper())
-            if len(text) >= 20:
-                out.append(text)
+        cfg = f"--psm {psm} -c tessedit_char_whitelist={MRZ_WHITELIST}"
+        try:
+            raw = pytesseract.image_to_string(var, config=cfg)
+        except Exception:
+            continue
+        text = re.sub(r"[^A-Z0-9<]", "", raw.upper())
+        if len(text) >= 20:
+            out.append(text)
     return out
 
 
