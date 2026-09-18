@@ -112,7 +112,9 @@ def _pdf_to_image(pdf_path: Path) -> Path:
 
 @app.get("/", response_class=HTMLResponse)
 def index() -> HTMLResponse:
-    return HTMLResponse((STATIC_DIR / "index.html").read_text())
+    if (STATIC_DIR / "index.html").exists():
+        return HTMLResponse((STATIC_DIR / "index.html").read_text())
+    return HTMLResponse("<h1>DocProve API Backend Live</h1><p>Visit <a href='/health'>/health</a></p>")
 
 
 @app.post("/api/scan")
