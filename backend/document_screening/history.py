@@ -24,7 +24,7 @@ from typing import Any
 
 DEFAULT_DB = Path(__file__).resolve().parent.parent / "data" / "scan_history.db"
 
-SCHEMA = """
+SCHEMA_TABLE = """
 CREATE TABLE IF NOT EXISTS scans (
     scan_id         TEXT PRIMARY KEY,
     created_at      REAL NOT NULL,
@@ -47,6 +47,9 @@ CREATE TABLE IF NOT EXISTS scans (
     reasons_json    TEXT,
     artifacts_json  TEXT
 );
+"""
+
+SCHEMA_INDEXES = """
 CREATE INDEX IF NOT EXISTS idx_scans_photo_hash ON scans(photo_hash);
 CREATE INDEX IF NOT EXISTS idx_scans_document_no ON scans(document_no);
 CREATE INDEX IF NOT EXISTS idx_scans_created_at ON scans(created_at);
@@ -59,7 +62,7 @@ def connect(db_path: str | Path = DEFAULT_DB) -> sqlite3.Connection:
     db_path.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(str(db_path))
     conn.row_factory = sqlite3.Row
-    conn.executescript(SCHEMA)
+    conn.executescript(SCHEMA_TABLE)
 
     # Auto-migrate if columns are missing
     cols = [col["name"] for col in conn.execute("PRAGMA table_info(scans)").fetchall()]
@@ -75,6 +78,11 @@ def connect(db_path: str | Path = DEFAULT_DB) -> sqlite3.Connection:
             conn.commit()
         except Exception:
             pass
+
+    try:
+        conn.executescript(SCHEMA_INDEXES)
+    except Exception:
+        pass
 
     return conn
 
